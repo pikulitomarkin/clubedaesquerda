@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
+import { decodePem } from "../../auth/crypto/pem.util";
 
 // Configuração RS256 do access token compartilhada entre AuthModule
 // (assinatura no login) e RealtimeModule (verificação na conexão
@@ -12,8 +13,10 @@ import { JwtModule } from "@nestjs/jwt";
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        privateKey: config.get<string>("JWT_ACCESS_PRIVATE_KEY"),
-        publicKey: config.get<string>("JWT_ACCESS_PUBLIC_KEY"),
+        // decodePem: as chaves vêm em base64 no ambiente porque PEM é
+        // multi-linha e .env/Docker Compose não carregam isso. Ver pem.util.
+        privateKey: decodePem(config.getOrThrow<string>("JWT_ACCESS_PRIVATE_KEY")),
+        publicKey: decodePem(config.getOrThrow<string>("JWT_ACCESS_PUBLIC_KEY")),
         signOptions: {
           algorithm: "RS256",
           expiresIn: config.get<string>("JWT_ACCESS_EXPIRES_IN", "15m"),
