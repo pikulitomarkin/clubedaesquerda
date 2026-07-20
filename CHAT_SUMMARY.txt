@@ -1,0 +1,495 @@
+═══════════════════════════════════════════════════════════════════════════════
+                         INTERFACE DE CHAT
+                  Clube da Esquerda - Sistema de Mensagens
+═══════════════════════════════════════════════════════════════════════════════
+
+📁 ARQUIVOS CRIADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+TIPOS & DADOS
+├─ src/types/chat.ts
+│  ├─ Usuario (id, name, avatar, status, lastSeen)
+│  ├─ Mensagem (id, content, timestamp, isRead, edited)
+│  ├─ Conversa (id, name, type, participants, lastMessage)
+│  ├─ ChatState (conversas, selectedConversas, messages)
+│  └─ ChatContextType
+└─ src/data/conversations.ts
+   ├─ USUARIOS (6 usuários de exemplo)
+   └─ CONVERSAS (6 conversas de exemplo)
+
+HOOKS
+└─ src/hooks/useChat.ts
+   ├─ Gerenciar estado de chat
+   ├─ Persistência em localStorage
+   ├─ Limite de 2 conversas abertas
+   ├─ Enviar/carregar mensagens
+   ├─ Marcar como lido
+   └─ Buscar conversas
+
+COMPONENTES
+├─ src/components/ConversationList.tsx
+│  ├─ Lista esquerda com todas conversas
+│  ├─ Campo de busca
+│  ├─ Avatar + nome + prévia
+│  ├─ Timestamp + badge não lidas
+│  ├─ Indicador de fixado
+│  ├─ Botão "Nova Conversa"
+│  └─ Status online/offline
+├─ src/components/ChatPanel.tsx
+│  ├─ Painel individual de chat
+│  ├─ Header com info da conversa
+│  ├─ Área de mensagens scrollável
+│  ├─ Auto-scroll
+│  ├─ Input de mensagem
+│  ├─ Botão fechar
+│  └─ Empty state
+├─ src/components/ChatTabs.tsx
+│  ├─ Gerencia até 2 painéis
+│  ├─ Grid responsivo
+│  ├─ Renderiza múltiplos ChatPanel
+│  └─ Empty state geral
+├─ src/components/ChatMessage.tsx
+│  ├─ Mensagem individual
+│  ├─ Bubble colorida
+│  ├─ Avatar + nome + timestamp
+│  ├─ Status de leitura (✓✓)
+│  ├─ Indicador editado
+│  └─ Alinhamento direita/esquerda
+├─ src/components/ChatInput.tsx
+│  ├─ Textarea com auto-resize
+│  ├─ Contador de caracteres (até 1000)
+│  ├─ Botão send
+│  ├─ Enviar com Ctrl/Cmd+Enter
+│  ├─ Quebra de linha com Shift+Enter
+│  └─ Disabled enquanto envia
+└─ src/components/Chat/index.ts (exportações)
+
+PÁGINAS
+└─ src/pages/ChatPage.tsx
+   ├─ Integração completa
+   ├─ Header com título
+   ├─ Sidebar + main area
+   ├─ Tratamento de erros
+   ├─ Loading states
+   └─ Footer com dica
+
+DOCUMENTAÇÃO
+├─ CHAT_INTERFACE.md (Documentação completa)
+└─ CHAT_SUMMARY.txt (Este arquivo)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✨ FUNCIONALIDADES
+═══════════════════════════════════════════════════════════════════════════════
+
+LAYOUT
+├─ Sidebar esquerda
+│  ├─ Lista de conversas (somente nomes + avatar)
+│  ├─ Campo de busca
+│  ├─ Ordenação por recência
+│  ├─ Badge de não lidas
+│  └─ Indicador de fixado
+├─ Painel central/direito
+│  ├─ Até 2 abas simultâneas
+│  ├─ Grid responsivo (1 col ou 2 cols)
+│  ├─ Fechar aba individual
+│  ├─ Header com info
+│  └─ Area de mensagens + input
+└─ Header e Footer
+   ├─ Título "Mensagens Diretas"
+   ├─ Dica de teclado
+   └─ Mensagens de erro
+
+CONVERSAS
+├─ Tipos
+│  ├─ Individual (1-to-1)
+│  └─ Grupo (múltiplos participantes)
+├─ Info
+│  ├─ Nome da conversa
+│  ├─ Avatar
+│  ├─ Descrição (grupos)
+│  ├─ Última mensagem
+│  ├─ Timestamp da última mensagem
+│  └─ Contador de não lidas
+├─ Status (apenas individual)
+│  ├─ 🟢 Online
+│  ├─ 🟡 Away
+│  ├─ ⚪ Offline
+│  └─ Último visto: "Visto às HH:MM"
+├─ Recursos
+│  ├─ Pinned (fixar)
+│  ├─ Archived (arquivar, não visível)
+│  ├─ Search (buscar por nome)
+│  └─ Order (por recência)
+└─ Criar
+   └─ Botão "Nova Conversa"
+
+MENSAGENS
+├─ Componentes
+│  ├─ Avatar do remetente
+│  ├─ Nome do remetente (grupos)
+│  ├─ Conteúdo com quebras de linha
+│  ├─ Timestamp (HH:MM)
+│  ├─ Status de leitura (✓✓)
+│  └─ Indicador editado
+├─ Envio
+│  ├─ Ctrl/Cmd + Enter para enviar
+│  ├─ Shift + Enter para quebra de linha
+│  ├─ Contador de caracteres (até 1000)
+│  ├─ Desabilitado enquanto envia
+│  └─ Feedback visual
+├─ Histórico
+│  ├─ Carregado ao abrir conversa
+│  ├─ Persistido em localStorage
+│  ├─ 3 mensagens simuladas ao abrir
+│  ├─ Timestamps variados
+│  └─ Auto-scroll para novas mensagens
+└─ Edição (preparado para implementar)
+   ├─ Marcar como editado
+   ├─ Timestamp de edição
+   └─ Indicador visual
+
+PERSISTÊNCIA (localStorage)
+├─ Chave: 'club_esquerda_messages'
+├─ Por conversa
+│  ├─ conversaId como key
+│  └─ Array de Mensagens
+├─ Formato
+│  ├─ Timestamps em ISO string
+│  ├─ Preserve quebras de linha
+│  └─ Full message data
+├─ Auto-save
+│  ├─ Ao enviar mensagem
+│  ├─ Ao carregar componente
+│  └─ Sem limite de tempo
+└─ Capacidade
+   └─ ~5-10MB (limite navegador)
+
+CONTROLES & UX
+├─ Teclado
+│  ├─ Ctrl/Cmd + Enter → Enviar
+│  ├─ Shift + Enter → Nova linha
+│  ├─ Tab → Navegar
+│  └─ Escape → ? (futuro)
+├─ Mouse
+│  ├─ Click conversa → Abrir/fechar
+│  ├─ Click aba X → Fechar
+│  ├─ Scroll → Histórico
+│  └─ Hover → Efeitos visuais
+├─ Mobile
+│  ├─ Touch conversa
+│  ├─ Swipe (futuro)
+│  └─ Full-screen chat
+└─ Feedback
+   ├─ Indicadores de carregamento
+   ├─ Mensagens de erro
+   ├─ Status de leitura
+   ├─ Typing indicators (futuro)
+   └─ Notificações (futuro)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 ESTADOS DE INTERAÇÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+ABRIR CONVERSA
+1. Usuário clica em conversa na lista
+2. selectedConversas += conversaId (máx 2)
+3. Se já tem 2, remove a primeira
+4. useEffect detecta mudança
+5. loadMessages() chamado
+6. Messages carregadas do localStorage
+7. markAsRead() chamado
+8. ChatPanel renderizado ao lado
+
+FECHAR CONVERSA
+1. Usuário clica X em aba
+2. closeConversa(conversaId)
+3. selectedConversas -= conversaId
+4. ChatPanel desmontado
+5. Mensagens permanecem no localStorage
+
+ENVIAR MENSAGEM
+1. Usuário digita conteúdo
+2. Pressiona Ctrl/Cmd + Enter
+3. onSendMessage() chamado
+4. Cria Mensagem com ID único
+5. Atualiza estado messages
+6. Salva em localStorage
+7. Input limpado
+8. Auto-scroll para nova mensagem
+9. Simula delay de 200ms
+10. Feedback visual de sucesso
+
+BUSCAR CONVERSA
+1. Usuário digita na search
+2. searchConversas() filtra
+3. Lista atualiza em tempo real
+4. Case-insensitive
+5. Busca no nome da conversa
+
+MARCAR COMO LIDO
+1. Conversa aberta
+2. markAsRead() chamado automaticamente
+3. Todas mensagens ficam isRead: true
+4. Badge de não lidas desaparece
+5. Persiste no localStorage
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎨 LAYOUT VISUAL
+═══════════════════════════════════════════════════════════════════════════════
+
+DESKTOP (>1024px)
+┌────────────────────────────────────────────────────────────┐
+│ [Terracota] Mensagens Diretas                             │
+├──────────┬────────────────────────────────────────────────┤
+│ Buscar   │ ┌──────────────────┐  ┌──────────────────┐     │
+│ ─────── │ │ Chat Panel 1      │  │ Chat Panel 2     │     │
+│         │ │                  │  │ (opcional)       │     │
+│ Conversa│ │ Header           │  │ Header           │     │
+│ List    │ │ ─────────────────  │ ─────────────────  │     │
+│         │ │ Messages         │  │ Messages         │     │
+│ ─────── │ │                  │  │                  │     │
+│         │ │ Input            │  │ Input            │     │
+│         │ └──────────────────┘  └──────────────────┘     │
+│ ─────── │                                                │
+│         │                                                │
+│ [Nova]  │                                                │
+└──────────┴────────────────────────────────────────────────┘
+│ 💡 Dica: Máx 2 conversas abertas...                       │
+└────────────────────────────────────────────────────────────┘
+
+TABLET (640-1024px)
+┌────────────────────────────────────┐
+│ Mensagens Diretas                 │
+├─────┬──────────────────────────────┤
+│ Conv│ Chat Panel 1                 │
+│ List│ (fullwidth)                  │
+│ (small)                            │
+│     │ Chat Panel 2 (se aberto)     │
+│     │ (stacked)                    │
+└─────┴──────────────────────────────┘
+
+MOBILE (<640px)
+┌──────────────────────┐
+│ Mensagens            │
+├──────────────────────┤
+│ [Conv List expandir] │
+│ ────────────────────  │
+│ Chat Panel (fullw)   │
+│ ────────────────────  │
+│ Input + Button       │
+└──────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 ESTRUTURA DE DADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+USUARIO
+├─ id: string
+├─ name: string
+├─ avatar?: string
+├─ status?: 'online' | 'offline' | 'away'
+└─ lastSeen?: Date
+
+MENSAGEM
+├─ id: string (unique)
+├─ conversaId: string (referência)
+├─ userId: string (quem enviou)
+├─ userName: string
+├─ userAvatar?: string
+├─ content: string (até 1000 chars)
+├─ timestamp: Date (auto)
+├─ isRead: boolean
+├─ edited?: boolean
+└─ editedAt?: Date
+
+CONVERSA
+├─ id: string
+├─ name: string
+├─ type: 'individual' | 'grupo'
+├─ participants: Usuario[]
+├─ lastMessage?: Mensagem
+├─ lastMessageAt?: Date
+├─ unreadCount: number
+├─ avatar?: string (individual = user avatar, grupo = custom)
+├─ description?: string (grupos)
+├─ isArchived?: boolean
+└─ isPinned?: boolean
+
+ESTADO DO CHAT (useChat)
+├─ selectedConversas: string[] (até 2)
+├─ messages: Record<conversaId, Mensagem[]>
+├─ isLoading: boolean
+├─ error?: string
+└─ Methods...
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔄 FLUXO DE DADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+INICIALIZAÇÃO
+1. ChatPage monta
+2. useChat inicializa
+3. localStorage lido
+4. Mensagens restauradas
+5. Conversas renderizadas
+
+ABRIR CONVERSA
+Conv List → openConversa → selectedConversas++ → useEffect
+→ loadMessages → localStorage → messages state → render ChatPanel
+
+ENVIAR MENSAGEM
+Input → handleSubmit → sendMessage → message criada → state
+→ localStorage save → input reset → auto-scroll
+
+BUSCAR
+Input search → searchConversas → filter conversas → list update
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💾 PERSISTÊNCIA
+═══════════════════════════════════════════════════════════════════════════════
+
+KEY: 'club_esquerda_messages'
+
+ESTRUTURA:
+{
+  "conversa-1": [
+    { id, conversaId, userId, userName, content, timestamp, isRead },
+    { id, conversaId, userId, userName, content, timestamp, isRead },
+    ...
+  ],
+  "conversa-2": [
+    ...
+  ]
+}
+
+SALVAR
+- Automático ao enviar mensagem
+- Ao abrir componente (initial load)
+- Sem limite de tempo
+
+CARREGAR
+- Ao montar ChatPage
+- Ao abrir conversa nova
+- Timestamps reconvertidos para Date
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🌐 EXEMPLO DE DADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+USUÁRIOS (6)
+├─ user-current: Você (online)
+├─ user-1: Marina Silva (online)
+├─ user-2: João Santos (offline)
+├─ user-3: Ana Costa (online)
+├─ user-4: Lucas Oliveira (away)
+└─ user-5: Fernanda Dias (online)
+
+CONVERSAS (6)
+├─ conversa-1: Marina Silva (individual, online, pinned)
+│  └─ Última: "Clique para próxima roda..." (5 min atrás)
+├─ conversa-2: João Santos (individual, offline)
+│  └─ Última: "Obrigado pela ajuda!" (2h atrás)
+├─ conversa-3: Círculo de Estudos (grupo, 4 pessoas)
+│  └─ Última: "📚 Texto de Marx..." (30 min atrás)
+├─ conversa-4: Ana Costa (individual, online, 1 não lida)
+│  └─ Última: "Que horas você chega?" (3h atrás)
+├─ conversa-5: Horta Comunitária (grupo, 3 pessoas)
+│  └─ Última: "🌱 Colheita sábado..." (8h atrás)
+└─ conversa-6: Lucas Oliveira (individual, away, vazio)
+   └─ Nenhuma mensagem
+
+HISTÓRICO SIMULADO
+- 3 mensagens ao carregar
+- Variados timestamps
+- De diferentes usuários
+- Preservados no localStorage
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⚙️ TÉCNICAS UTILIZADAS
+═══════════════════════════════════════════════════════════════════════════════
+
+React
+├─ useState para estado
+├─ useEffect para side effects
+├─ useCallback para otimização
+├─ useRef para scroll automático
+└─ Custom hook useChat
+
+Storage
+├─ localStorage para persistência
+├─ JSON.stringify/parse
+├─ Reconversão de timestamps
+└─ Auto-save após enviar
+
+Styling
+├─ Tailwind CSS para layout
+├─ Design system do projeto
+├─ Breakpoints responsivos
+├─ Hover e active states
+└─ Animações suaves
+
+UX
+├─ Auto-resize de textarea
+├─ Auto-scroll para novas mensagens
+├─ Debounce de search (não necessário, rápido)
+├─ Feedback visual de loading
+├─ Error messages descritivas
+└─ Atalhos de teclado
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 PRÓXIMAS ETAPAS
+═══════════════════════════════════════════════════════════════════════════════
+
+BACKEND
+├─ GET /api/chats
+├─ GET /api/chats/:conversaId/messages
+├─ POST /api/messages
+├─ PATCH /api/messages/:messageId (editar)
+├─ DELETE /api/messages/:messageId
+├─ POST /api/chats/:conversaId/read
+└─ GET /api/users/:userId/status
+
+FRONTEND
+├─ Integração com API real
+├─ Editar/deletar mensagens
+├─ Typing indicators
+├─ Notificações
+├─ Busca avançada
+├─ Criar conversa
+└─ Chamadas de voz/vídeo
+
+FEATURES
+├─ Reações de emoji
+├─ Compartilhamento de mídia
+├─ Voice messages
+├─ Pinned messages
+├─ Message search
+└─ Rich text formatting
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ STATUS: COMPLETO
+
+Interface de chat totalmente funcional com:
+✅ Lista de conversas à esquerda
+✅ Até 2 abas simultâneas
+✅ Histórico persistido
+✅ Status de usuário
+✅ Busca
+✅ Dados de exemplo
+✅ Atalhos de teclado
+✅ Responsividade
+✅ Documentação
+
+PRONTO PARA USAR! 🚀
+
+═══════════════════════════════════════════════════════════════════════════════

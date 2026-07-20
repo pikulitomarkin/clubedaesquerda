@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design System - Clube da Esquerda - Exemplos HTML</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="src/styles/design-system.css">
+  <style>
+    :root {
+      --color-linen-sand: #cdbfa7;
+      --color-terracotta: #ed8242;
+      --color-embroidery-black: #1a1a1a;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="min-h-screen bg-linen-texture text-embroidery-black p-8">
+
+    <!-- Header com Logo -->
+    <section class="mb-16 text-center">
+      <div style="display: inline-block;">
+        <div class="embroidery-frame p-8" style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center;">
+          <div class="embroidery-text" style="font-size: 2rem;">
+            Clube da<br>Esquerda
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Tipografia -->
+    <section class="mb-16">
+      <h1 class="font-heading text-5xl mb-2">Tipografia</h1>
+      <p class="font-subheading text-2xl text-gray-600 mb-8">Sistema de Fontes e Estilos</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Heading -->
+        <div class="p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <h2 class="font-heading text-4xl mb-2">Heading Style</h2>
+          <p class="text-xs text-gray-600">Caveat Bold 2.5rem - Títulos em cursiva</p>
+        </div>
+
+        <!-- Subheading -->
+        <div class="p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <h3 class="font-subheading text-2xl mb-2">Subheading Style</h3>
+          <p class="text-xs text-gray-600">Caveat Regular 1.5rem - Subtítulos elegantes</p>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <p class="font-body mb-2">
+            Body Text - Esta é a fonte padrão do sistema, usada em parágrafos,
+            descrições e conteúdo geral. 12px, sans-serif.
+          </p>
+          <p class="text-xs text-gray-600">System Font 12px Regular</p>
+        </div>
+
+        <!-- Embroidery -->
+        <div class="p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <p class="font-embroidery text-xl mb-2">Embroidery Text Style</p>
+          <p class="text-xs text-gray-600">Dancing Script Bold - Para textos com efeito de bordado</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Cores -->
+    <section class="mb-16">
+      <h1 class="font-heading text-5xl mb-2">Paleta de Cores</h1>
+      <p class="font-subheading text-2xl text-gray-600 mb-8">Cores do Sistema</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Linen -->
+        <div class="p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <div class="w-full h-32 bg-gradient-to-br from-linen-300 to-linen-600 rounded-md mb-4 shadow-md"></div>
+          <h3 class="font-embroidery text-lg mb-1">Linen (Linho)</h3>
+          <p class="text-xs text-gray-600">
+            #cdbfa7 - Cor primária de fundo. Simula textura de linho branco areia.
+          </p>
+        </div>
+
+        <!-- Terracotta -->
+        <div class="p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <div class="w-full h-32 bg-gradient-to-br from-terracotta-300 to-terracotta-700 rounded-md mb-4 shadow-md"></div>
+          <h3 class="font-embroidery text-lg mb-1">Terracotta</h3>
+          <p class="text-xs text-gray-600">
+            #ed8242 - Cores quentes para botões, ênfase e elementos de destaque.
+          </p>
+        </div>
+
+        <!-- Embroidery -->
+        <div class="p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <div class="w-full h-32 bg-gradient-to-br from-embroidery-dark to-embroidery-gray rounded-md mb-4 shadow-md"></div>
+          <h3 class="font-embroidery text-lg mb-1">Embroidery</h3>
+          <p class="text-xs text-gray-600">
+            #1a1a1a - Texto e contrastes. Cores escuras para legibilidade.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Cores de Linha -->
+    <section class="mb-16">
+      <h1 class="font-heading text-5xl mb-2">Cores de Linha de Bordado</h1>
+      <p class="font-subheading text-2xl text-gray-600 mb-8">Variações Customizáveis</p>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-full bg-black shadow-md mx-auto mb-3"></div>
+          <p class="font-embroidery text-sm">Preta</p>
+          <p class="text-xs text-gray-600">#1a1a1a</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-full bg-white border-2 border-gray-300 shadow-md mx-auto mb-3"></div>
+          <p class="font-embroidery text-sm">Branca</p>
+          <p class="text-xs text-gray-600">#ffffff</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-full bg-red-600 shadow-md mx-auto mb-3"></div>
+          <p class="font-embroidery text-sm">Vermelha</p>
+          <p class="text-xs text-gray-600">#d32f2f</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-full bg-yellow-500 shadow-md mx-auto mb-3"></div>
+          <p class="font-embroidery text-sm">Dourada</p>
+          <p class="text-xs text-gray-600">#f9a825</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-full bg-green-700 shadow-md mx-auto mb-3"></div>
+          <p class="font-embroqueryery text-sm">Verde</p>
+          <p class="text-xs text-gray-600">#2e7d32</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-full bg-blue-600 shadow-md mx-auto mb-3"></div>
+          <p class="font-embroidery text-sm">Azul</p>
+          <p class="text-xs text-gray-600">#1976d2</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Botões -->
+    <section class="mb-16">
+      <h1 class="font-heading text-5xl mb-2">Botões</h1>
+      <p class="font-subheading text-2xl text-gray-600 mb-8">Componentes Reutilizáveis</p>
+
+      <!-- Tamanhos -->
+      <div class="mb-12">
+        <h3 class="font-subheading text-xl mb-4">Tamanhos</h3>
+        <div class="flex flex-wrap gap-4 p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <!-- Small -->
+          <button class="embroidery-button embroidery-thread-black px-3 py-1 text-sm">
+            Pequeno
+          </button>
+
+          <!-- Medium -->
+          <button class="embroidery-button embroidery-thread-black px-6 py-3 text-base">
+            Médio
+          </button>
+
+          <!-- Large -->
+          <button class="embroidery-button embroidery-thread-black px-8 py-4 text-lg">
+            Grande
+          </button>
+        </div>
+      </div>
+
+      <!-- Cores de Linha -->
+      <div class="mb-12">
+        <h3 class="font-subheading text-xl mb-4">Cores de Linha</h3>
+        <div class="flex flex-wrap gap-4 p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <button class="embroidery-button embroidery-thread-black">Linha Preta</button>
+          <button class="embroidery-button embroidery-thread-white">Linha Branca</button>
+          <button class="embroidery-button embroidery-thread-red">Linha Vermelha</button>
+          <button class="embroidery-button embroidery-thread-gold">Linha Dourada</button>
+          <button class="embroidery-button embroidery-thread-green">Linha Verde</button>
+          <button class="embroidery-button embroidery-thread-blue">Linha Azul</button>
+        </div>
+      </div>
+
+      <!-- Variantes -->
+      <div class="mb-12">
+        <h3 class="font-subheading text-xl mb-4">Variantes</h3>
+        <div class="flex flex-wrap gap-4 p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <!-- Primary -->
+          <button class="embroidery-button embroidery-thread-black bg-gradient-to-b from-terracotta-500 to-terracotta-700">
+            Primário
+          </button>
+
+          <!-- Secondary -->
+          <button class="embroidery-button embroidery-thread-black bg-gradient-to-b from-linen-300 to-linen-700 text-embroidery-dark">
+            Secundário
+          </button>
+        </div>
+      </div>
+
+      <!-- Estados -->
+      <div class="mb-12">
+        <h3 class="font-subheading text-xl mb-4">Estados</h3>
+        <div class="flex flex-wrap gap-4 p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <button class="embroidery-button embroidery-thread-black">
+            Normal
+          </button>
+
+          <button class="embroidery-button embroidery-thread-black" disabled>
+            Desabilitado
+          </button>
+
+          <button class="embroidery-button embroidery-thread-black" onclick="this.style.animation='buttonPress 0.15s ease-out';">
+            Com Pressão
+          </button>
+        </div>
+      </div>
+
+      <!-- Exemplos Combinados -->
+      <div class="mb-12">
+        <h3 class="font-subheading text-xl mb-4">Exemplos Combinados</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-white/50 rounded-lg shadow-embroidery">
+          <div>
+            <p class="text-xs font-embroidery text-gray-600 mb-2">Primário + Preto (Padrão)</p>
+            <button class="embroidery-button embroidery-thread-black px-6 py-3">
+              Clique aqui
+            </button>
+          </div>
+
+          <div>
+            <p class="text-xs font-embroidery text-gray-600 mb-2">Primário + Dourado (Premium)</p>
+            <button class="embroidery-button embroidery-thread-gold px-6 py-3">
+              Premium
+            </button>
+          </div>
+
+          <div>
+            <p class="text-xs font-embroidery text-gray-600 mb-2">Secundário + Verde (Aprovado)</p>
+            <button class="embroidery-button embroidery-thread-green bg-gradient-to-b from-linen-300 to-linen-700 text-embroidery-dark px-6 py-3">
+              Aprovado
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Efeitos -->
+    <section class="mb-16">
+      <h1 class="font-heading text-5xl mb-2">Efeitos Especiais</h1>
+      <p class="font-subheading text-2xl text-gray-600 mb-8">Elementos Visuais Únicos</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <!-- Bastidor -->
+        <div class="embroidery-frame p-8 flex flex-col items-center justify-center bg-white/30" style="height: 250px;">
+          <p class="embroidery-text font-handwritten text-3xl">Bastidor</p>
+          <p class="text-xs text-gray-600 mt-4">Frame de bordado com textura de madeira</p>
+        </div>
+
+        <!-- Textura de Linho -->
+        <div class="p-8 bg-white/50 rounded-lg shadow-embroidery">
+          <h3 class="font-embroidery text-lg mb-4">Textura de Linho</h3>
+          <div class="bg-linen-texture h-24 rounded-md mb-4" style="height: 150px;"></div>
+          <p class="text-xs text-gray-600">
+            Padrão de linho branco areia com texturas sobrepostas criando profundidade
+          </p>
+        </div>
+      </div>
+
+      <!-- Sombras -->
+      <div class="p-8 bg-white/50 rounded-lg shadow-embroidery">
+        <h3 class="font-embroidery text-lg mb-4">Efeitos de Sombra</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 bg-white shadow-embroidery rounded-md text-center">
+            <p class="text-xs font-embroidery">Shadow Embroidery</p>
+          </div>
+          <div class="p-4 bg-white shadow-embroidery-3d rounded-md text-center">
+            <p class="text-xs font-embroidery">Shadow 3D</p>
+          </div>
+          <div class="p-4 bg-white shadow-embroidery-pressed rounded-md text-center">
+            <p class="text-xs font-embroidery">Shadow Pressed</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Documentação -->
+    <section class="p-8 bg-white/50 rounded-lg shadow-embroidery">
+      <h2 class="font-heading text-3xl mb-4">📚 Documentação</h2>
+      <p class="font-body mb-4">
+        Para mais informações sobre o design system, consulte <strong>DESIGN_SYSTEM.md</strong>
+      </p>
+      <ul class="font-body list-disc list-inside space-y-2">
+        <li><strong>Estrutura de componentes:</strong> src/components/</li>
+        <li><strong>Estilos CSS:</strong> src/styles/design-system.css</li>
+        <li><strong>Tokens TypeScript:</strong> src/styles/design-tokens.ts</li>
+        <li><strong>Configuração Tailwind:</strong> tailwind.config.ts</li>
+        <li><strong>Demonstração completa:</strong> src/pages/DesignSystemShowcase.tsx</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <script>
+    // Simular efeito de pressão nos botões HTML
+    document.querySelectorAll('.embroidery-button').forEach(button => {
+      button.addEventListener('click', function(e) {
+        this.style.animation = 'none';
+        setTimeout(() => {
+          this.style.animation = 'buttonPress 0.15s ease-out';
+        }, 10);
+      });
+    });
+  </script>
+</body>
+</html>

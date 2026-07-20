@@ -1,0 +1,322 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: linear-gradient(135deg, #cdbfa7 0%, #e1d9ca 50%, #cdbfa7 100%);
+  background-attachment: fixed;
+}
+
+/* Linen Texture Background */
+.bg-linen-texture {
+  background-color: #cdbfa7;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(184, 167, 138, 0.1) 2px, rgba(184, 167, 138, 0.1) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(184, 167, 138, 0.1) 2px, rgba(184, 167, 138, 0.1) 4px),
+    radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(0, 0, 0, 0.05) 0%, transparent 50%);
+  position: relative;
+}
+
+.bg-linen-texture::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='4' height='4' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0 L4 4 M4 0 L0 4' stroke='%23b8a78a' stroke-width='0.5' opacity='0.15'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* Typography */
+.font-heading {
+  font-family: 'Caveat', cursive;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  color: #1a1a1a;
+}
+
+.font-subheading {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #5a5a5a;
+}
+
+.font-body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #1a1a1a;
+}
+
+.font-embroidery {
+  font-family: 'Dancing Script', cursive;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Embroidery Bastidor (Frame) */
+.embroidery-frame {
+  position: relative;
+  display: inline-block;
+  padding: 2rem;
+  border: 3px solid #8b7355;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 70%),
+              linear-gradient(135deg, #d4a574 0%, #b8926f 50%, #9d7a5c 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+    0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.embroidery-frame::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 16px;
+  background: linear-gradient(180deg, #8b7355 0%, #6b5543 100%);
+  border-radius: 50% 50% 0 0;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.embroidery-frame::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 95%;
+  height: 95%;
+  border: 1px dashed rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.embroidery-text {
+  font-family: 'Dancing Script', cursive;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-align: center;
+  text-shadow:
+    1px 1px 0 rgba(255, 255, 255, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Embroidery Stitch Effect */
+.embroidery-stitch {
+  position: relative;
+  padding: 0.5em 1em;
+}
+
+.embroidery-stitch::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0,
+    currentColor 3px,
+    transparent 3px,
+    transparent 6px
+  );
+  opacity: 0.8;
+}
+
+/* Embroidery Button Base */
+.embroidery-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-family: 'Dancing Script', cursive;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+
+  background: linear-gradient(180deg, #ed8242 0%, #d86d2e 100%);
+  box-shadow:
+    0 4px 8px rgba(26, 26, 26, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(26, 26, 26, 0.15);
+
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.embroidery-button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 6px 12px rgba(26, 26, 26, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(26, 26, 26, 0.15);
+}
+
+.embroidery-button:active {
+  animation: buttonPress 0.15s ease-out;
+  box-shadow:
+    inset 0 2px 4px rgba(26, 26, 26, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.embroidery-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes buttonPress {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Thread Stitch Underline on Button Text */
+.embroidery-button::before {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0,
+    currentColor 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  opacity: 0.4;
+}
+
+/* Colored Thread Variants */
+.embroidery-thread-black {
+  color: #1a1a1a;
+  text-shadow:
+    1px 1px 0 rgba(255, 255, 255, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.embroidery-thread-white {
+  color: #ffffff;
+  text-shadow:
+    1px 1px 0 rgba(0, 0, 0, 0.3),
+    -1px -1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.embroidery-thread-red {
+  color: #d32f2f;
+  text-shadow:
+    1px 1px 0 rgba(255, 255, 255, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.embroidery-thread-gold {
+  color: #f9a825;
+  text-shadow:
+    1px 1px 0 rgba(255, 255, 255, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.embroidery-thread-green {
+  color: #2e7d32;
+  text-shadow:
+    1px 1px 0 rgba(255, 255, 255, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.embroidery-thread-blue {
+  color: #1976d2;
+  text-shadow:
+    1px 1px 0 rgba(255, 255, 255, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Focus States */
+.embroidery-button:focus {
+  outline: none;
+  box-shadow:
+    0 4px 8px rgba(26, 26, 26, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(26, 26, 26, 0.15),
+    0 0 0 3px rgba(237, 130, 66, 0.25);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .embroidery-button,
+  body {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(135deg, #5a5243 0%, #3a3530 50%, #5a5243 100%);
+    color: #e0dcd8;
+  }
+
+  .font-heading,
+  .embroidery-text {
+    color: #e0dcd8;
+  }
+
+  .font-subheading {
+    color: #a8a49f;
+  }
+
+  .font-body {
+    color: #e0dcd8;
+  }
+
+  .embroidery-frame {
+    background: radial-gradient(ellipse at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
+                linear-gradient(135deg, #6b5a48 0%, #5a4844 50%, #4a3c38 100%);
+    border-color: #4a3f38;
+  }
+}

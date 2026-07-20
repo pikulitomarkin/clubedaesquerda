@@ -1,0 +1,477 @@
+═══════════════════════════════════════════════════════════════════════════════
+                     CRUD DE PERFIL DE USUÁRIO
+                  Clube da Esquerda - Sistema Completo
+═══════════════════════════════════════════════════════════════════════════════
+
+📁 ARQUIVOS CRIADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+TIPOS & DADOS
+├─ src/types/profile.ts
+│  ├─ UserProfile (id, name, photos[], description, banners[], interests[])
+│  ├─ Banner (id, name, icon, description)
+│  ├─ Interest (id, name, icon, category)
+│  ├─ CreateUserProfileDTO
+│  └─ UpdateUserProfileDTO
+├─ src/data/banners.ts (21 bandeiras com ícones)
+└─ src/data/interests.ts (25 interesses com categorias)
+
+COMPONENTES
+├─ src/components/PhotoUpload.tsx
+│  ├─ Upload até 3 fotos
+│  ├─ Drag & drop
+│  ├─ Validações (tipo, tamanho 5MB)
+│  └─ Preview em grid
+├─ src/components/DescriptionInput.tsx
+│  ├─ Textarea com limite 600 caracteres
+│  ├─ Contador em tempo real
+│  ├─ Barra de progresso
+│  ├─ Avisos de limite
+│  └─ Suporte a quebras de linha
+├─ src/components/BannerSelector.tsx
+│  ├─ Grid de 21 bandeiras
+│  ├─ Seleção múltipla (máx 8)
+│  ├─ Indicador visual de seleção
+│  ├─ Chips com selecionadas
+│  └─ Remover individual via X
+├─ src/components/InterestSelector.tsx
+│  ├─ Grid de 25 interesses
+│  ├─ Filtro por 6 categorias
+│  ├─ Seleção múltipla (máx 12)
+│  ├─ Indicador visual de seleção
+│  ├─ Chips com selecionadas
+│  └─ Remover individual via X
+├─ src/components/MultiSelectButton.tsx
+│  ├─ Componente reutilizável
+│  ├─ Ícone + nome (icon + text)
+│  ├─ Checkmark quando selecionado
+│  ├─ Borders dashed
+│  └─ Estados visuais (hover, selected)
+└─ src/components/ProfileCrud/index.ts (exportações)
+
+HOOKS
+└─ src/hooks/useProfile.ts
+   ├─ createProfile(data) → Promise<UserProfile>
+   ├─ updateProfile(data) → Promise<UserProfile>
+   ├─ updateField(field, value) → void
+   ├─ loadProfile(userId) → Promise<UserProfile>
+   ├─ deleteProfile() → Promise<boolean>
+   ├─ State: profile, isLoading, error, isDirty
+   └─ Métodos: reset()
+
+PÁGINAS
+├─ src/pages/UserProfilePage.tsx
+│  ├─ CRUD completo com modo view/edit
+│  ├─ Seções: Fotos, Descrição, Bandeiras, Interesses
+│  ├─ Botões de editar/salvar/cancelar
+│  ├─ Notificações de sucesso
+│  ├─ Indicador de mudanças não salvas
+│  └─ Datas de criação/atualização
+└─ src/pages/ProfileCrudDemo.tsx
+   ├─ Página de demonstração completa
+   ├─ Sidebar com estatísticas em tempo real
+   ├─ Tabelas de todas as bandeiras/interesses
+   ├─ Resumo de progresso
+   └─ Info box com limites
+
+DOCUMENTAÇÃO
+├─ USER_PROFILE_CRUD.md (80+ linhas de documentação)
+└─ USER_PROFILE_SUMMARY.txt (este arquivo)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✨ FUNCIONALIDADES
+═══════════════════════════════════════════════════════════════════════════════
+
+📸 UPLOAD DE FOTOS
+├─ Máximo 3 fotos por perfil
+├─ Tamanho máximo 5MB por foto
+├─ Suporte a PNG, JPG, WebP, etc
+├─ Upload por clique ou drag & drop
+├─ Preview em grid responsivo (3 colunas)
+├─ Remover foto individual ao hover
+├─ Validação de tipo e tamanho com erros
+├─ Armazenamento em Base64 (ou API)
+└─ Contador de fotos (X/3)
+
+📝 DESCRIÇÃO (até 600 caracteres)
+├─ Textarea com auto-resize
+├─ Contador em tempo real
+├─ Barra de progresso colorida
+├─ Avisos:
+│  ├─ Verde: < 500 chars
+│  ├─ Amarelo: 500-550 chars
+│  └─ Vermelho: 550+ chars
+├─ Suporte a quebras de linha (Ctrl+Enter)
+├─ Placeholder inspirador
+├─ Botão para limpar tudo
+└─ Caracteres restantes ao hover
+
+🏳️‍🌈 BANDEIRAS (21 opções com ícones)
+├─ Categoria: Identidade e Direitos
+│  ├─ LGBTQ+ 🏳️‍🌈
+│  ├─ Transexual 🏳️‍⚧️
+│  ├─ Não-binário ⚧️
+│  └─ [mais 4...]
+├─ Categoria: Igualdade
+│  ├─ Feminismo ♀️
+│  ├─ Anti-machismo 🚫
+│  ├─ Antirracismo ✊
+│  └─ [mais 5...]
+├─ Categoria: Povos Originários & Deficiência
+│  ├─ Indígena 🪶
+│  ├─ Pessoas com Deficiência ♿
+│  └─ Neurodiversidade 🧠
+├─ Categoria: Ideologia Política
+│  ├─ Socialismo 🚩
+│  ├─ Comunismo ☭
+│  ├─ Anarquismo ⚫
+│  └─ [mais 3...]
+├─ Categoria: Temas Diversos
+│  ├─ Movimento Operário 🔨
+│  ├─ Questão Agrária 🌾
+│  ├─ Ambientalismo 🌍
+│  ├─ Antimilitarismo ☮️
+│  ├─ Solidariedade Internacional 🤝
+│  ├─ Descolonização 🗺️
+│  ├─ Anticapitalismo 💔
+│  ├─ Secularismo ✏️
+│  └─ Esquerda Cultural 🎭
+├─ Limite: 8 seleções máximo
+├─ Grid responsivo (2-6 colunas)
+├─ Checkmark quando selecionado
+├─ Visualização das seleções em chips
+└─ Remover individual via X
+
+⭐ INTERESSES (25 opções organizadas por categoria)
+├─ IDEOLOGIA (6)
+│  ├─ Política 🏛️
+│  ├─ Economia Política 💰
+│  ├─ Justiça Social ⚖️
+│  ├─ Direitos Humanos 🕊️
+│  ├─ Meio Ambiente 🌱
+│  └─ Estudos de Gênero 👯
+├─ EDUCAÇÃO (6)
+│  ├─ História 📚
+│  ├─ Filosofia 🤔
+│  ├─ Sociologia 👥
+│  ├─ Tecnologia 💻
+│  ├─ Espiritualidade 🙏
+│  └─ [mais 1...]
+├─ AÇÃO (4)
+│  ├─ Ativismo ✊
+│  ├─ Trabalho Comunitário 🤲
+│  ├─ Educação 🎓
+│  └─ Saúde Pública ⚕️
+├─ CULTURA (5)
+│  ├─ Artes 🎨
+│  ├─ Música 🎵
+│  ├─ Literatura 📖
+│  ├─ Cinema 🎬
+│  └─ Teatro 🎭
+├─ LAZER (3)
+│  ├─ Esportes ⚽
+│  ├─ Gastronomia 🍲
+│  └─ Viagens ✈️
+├─ PESSOAL (2)
+│  ├─ Espiritualidade 🙏
+│  └─ Saúde Mental 💜
+└─ SOCIAL (1)
+   └─ Networking 🔗
+├─ Filtro por categoria com 6 abas
+├─ Limite: 12 seleções máximo
+├─ Grid responsivo (2-5 colunas)
+├─ Checkmark quando selecionado
+├─ Visualização das seleções em chips
+└─ Remover individual via X
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 FLUXO DE USO
+═══════════════════════════════════════════════════════════════════════════════
+
+1. VISUALIZAR PERFIL
+   ┌─────────────────────────────────┐
+   │ Página de Perfil (Modo View)    │
+   ├─────────────────────────────────┤
+   │ Fotograf... Descrição...        │
+   │ Bandeiras... Interesses...      │
+   │ [Botão Editar]                  │
+   └─────────────────────────────────┘
+
+2. EDITAR PERFIL
+   ┌─────────────────────────────────┐
+   │ Página de Perfil (Modo Edit)    │
+   ├─────────────────────────────────┤
+   │ ▶ Upload de Fotos               │
+   │ ▶ Descrição (até 600 chars)     │
+   │ ▶ Bandeiras (máx 8)             │
+   │ ▶ Interesses (máx 12)           │
+   │ [Cancelar] [Salvar]             │
+   └─────────────────────────────────┘
+
+3. COMPONENTES INDIVIDUAIS
+   ┌────────────────────────────────┐
+   │ <PhotoUpload>                  │
+   │ <DescriptionInput>             │
+   │ <BannerSelector>               │
+   │ <InterestSelector>             │
+   │ <MultiSelectButton>            │
+   └────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔄 HOOK: useProfile
+═══════════════════════════════════════════════════════════════════════════════
+
+ESTADO
+├─ profile: UserProfile | null
+├─ isLoading: boolean
+├─ error: string
+└─ isDirty: boolean (mudanças não salvas)
+
+MÉTODOS
+├─ createProfile(data) → Promise<UserProfile>
+│  └─ POST /api/profiles
+├─ updateProfile(data) → Promise<UserProfile>
+│  └─ PATCH /api/profiles/:id
+├─ updateField<K>(field, value) → void
+│  └─ Atualiza um campo específico
+├─ loadProfile(userId) → Promise<UserProfile>
+│  └─ GET /api/profiles/:id
+├─ deleteProfile() → Promise<boolean>
+│  └─ DELETE /api/profiles/:id
+└─ reset() → void
+   └─ Reseta error e isDirty
+
+EXEMPLO DE USO
+┌─────────────────────────────────────┐
+│ const { profile, updateField } =    │
+│   useProfile();                      │
+│                                      │
+│ updateField('description', 'novo'); │
+│ updateField('photos', [...]);       │
+│ await updateProfile({...});         │
+└─────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎨 COMPONENTES COM ÍCONES BORDADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+MULTISELECT BUTTON (Reutilizável)
+┌──────────────┐
+│    ✓         │ ← Checkmark quando selecionado
+│    🏳️‍🌈       │ ← Ícone grande (3xl/4xl)
+│   LGBTQ+     │ ← Nome (line-clamp-2)
+└──────────────┘
+estados:
+├─ Default: border-dashed linen-400
+├─ Hover: border-linen-500
+├─ Selected: border-terracotta-500 bg-terracotta-50
+└─ Disabled: opacity-50
+
+CORES DE FUNDO
+├─ Selecionado: bg-terracotta-50 (muito claro)
+├─ Hover: shadow-md
+├─ Disabled: opacity-50
+└─ Bordas: dashed 2px
+
+TEXT-SHADOW
+├─ Text em cor da linha (preto/vermelho/dourado/etc)
+├─ Text-shadow suave para efeito de bordado
+├─ Font: Dancing Script Bold (manuscrita)
+└─ Uppercase + letter-spacing
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 DADOS & ARMAZENAMENTO
+═══════════════════════════════════════════════════════════════════════════════
+
+UserProfile {
+  id: string;                    // ID único
+  name: string;                  // Nome do usuário
+  avatar?: string;               // Avatar (opcional)
+  photos: string[];              // Base64 (até 3)
+  description: string;           // Até 600 caracteres
+  banners: string[];             // IDs das bandeiras (até 8)
+  interests: string[];           // IDs dos interesses (até 12)
+  createdAt: Date;               // Timestamp de criação
+  updatedAt: Date;               // Timestamp de atualização
+}
+
+ARMAZENAMENTO
+├─ LOCAL: localStorage (5-10MB máx)
+│  └─ Simples para demo
+├─ API: Integrar com backend
+│  └─ POST /api/profiles
+│  └─ PATCH /api/profiles/:id
+│  └─ GET /api/profiles/:id
+│  └─ DELETE /api/profiles/:id
+└─ CLOUD: S3/CDN para fotos
+   └─ Upload base64 ou multipart/form-data
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 COMO USAR
+═══════════════════════════════════════════════════════════════════════════════
+
+1. IMPORTAR E USAR A PÁGINA COMPLETA
+
+import { UserProfilePage } from '@/pages/UserProfilePage';
+
+export default function App() {
+  return <UserProfilePage />;
+}
+
+2. USAR COMPONENTES INDIVIDUAIS
+
+import {
+  PhotoUpload,
+  DescriptionInput,
+  BannerSelector,
+  InterestSelector,
+} from '@/components/ProfileCrud';
+
+function MyForm() {
+  const { profile, updateField } = useProfile();
+
+  return (
+    <div>
+      <PhotoUpload
+        photos={profile.photos}
+        onPhotosChange={(p) => updateField('photos', p)}
+      />
+      <DescriptionInput
+        value={profile.description}
+        onChange={(d) => updateField('description', d)}
+      />
+      {/* ... */}
+    </div>
+  );
+}
+
+3. USAR O HOOK CUSTOMIZADO
+
+import { useProfile } from '@/hooks/useProfile';
+
+function MyComponent() {
+  const {
+    profile,
+    isDirty,
+    updateField,
+    updateProfile,
+  } = useProfile();
+
+  const handleSave = async () => {
+    await updateProfile({
+      photos: profile.photos,
+      description: profile.description,
+      banners: profile.banners,
+      interests: profile.interests,
+    });
+  };
+
+  return (
+    <div>
+      {/* Formulário */}
+      <button onClick={handleSave} disabled={!isDirty}>
+        Salvar
+      </button>
+    </div>
+  );
+}
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⚙️ CUSTOMIZAÇÕES
+═══════════════════════════════════════════════════════════════════════════════
+
+MUDAR LIMITES
+├─ PhotoUpload: maxPhotos={5}, maxFileSize={10}
+├─ DescriptionInput: maxCharacters={1000}
+├─ BannerSelector: maxSelections={10}
+└─ InterestSelector: maxSelections={15}
+
+ADICIONAR NOVA BANDEIRA
+1. Editar src/data/banners.ts
+2. Adicionar objeto ao array BANNERS
+{
+  id: 'novo-id',
+  name: 'Nome da Bandeira',
+  icon: '🎯',
+  description: 'Descrição opcional',
+}
+
+ADICIONAR NOVO INTERESSE
+1. Editar src/data/interests.ts
+2. Adicionar objeto ao array INTERESTS
+{
+  id: 'novo-id',
+  name: 'Nome do Interesse',
+  icon: '⭐',
+  category: 'Categoria Existente',
+}
+
+INTEGRAR COM API
+1. Editar useProfile.ts
+2. Substituir chamadas de fetch simuladas:
+   // Antes
+   const newProfile = { ... };
+
+   // Depois
+   const response = await fetch('/api/profiles', {
+     method: 'POST',
+     body: JSON.stringify(data),
+   });
+   const newProfile = await response.json();
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📱 RESPONSIVIDADE
+═══════════════════════════════════════════════════════════════════════════════
+
+FOTOGRAF... → Grid 3 colunas sempre
+MULTI-SELECT → Grid responsivo
+├─ Mobile (< 640px): 2 colunas
+├─ Tablet (640-768px): 3 colunas
+├─ Desktop (768-1024px): 4 colunas
+└─ Large (> 1024px): 5-6 colunas
+
+DESCRIÇÃO → Full width, min-height 128px
+BANDEIRAS → 21 items em grid responsivo
+INTERESSES → 25 items em grid responsivo + filtro
+
+═══════════════════════════════════════════════════════════════════════════════
+
+♿ ACESSIBILIDADE
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ Inputs com labels associados
+✓ ARIA labels em botões
+✓ Focus states visíveis (ring)
+✓ Navegação via teclado (Tab)
+✓ Cores de aviso (não apenas visuais)
+✓ Alt text em imagens
+✓ Contraste de cores adequado
+✓ Tipografia legível
+✓ Estados de desabilitação claros
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📚 REFERÊNCIAS
+═══════════════════════════════════════════════════════════════════════════════
+
+Documentação Completa
+└─ USER_PROFILE_CRUD.md
+
+Página de Demo
+└─ /profile-crud-demo
+
+Página Principal
+└─ /user-profile
+
+Design System
+└─ DESIGN_SYSTEM.md
+
+═══════════════════════════════════════════════════════════════════════════════

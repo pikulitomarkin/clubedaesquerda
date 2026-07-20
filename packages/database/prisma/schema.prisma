@@ -1,0 +1,848 @@
+// Clube da Esquerda — schema de banco de dados
+// Ver docs/contexto.md para as decisões de concorrência, segurança e LGPD
+// que motivam campos e índices marcados com comentários "DECISÃO:".
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =========================================================================
+// ENUMS
+// =========================================================================
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  BANNED
+  DELETED // soft-delete: dados pessoais anonimizados, linha mantida por integridade referencial
+}
+
+enum UserRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+enum Gender {
+  MULHER_CIS
+  HOMEM_CIS
+  MULHER_TRANS
+  HOMEM_TRANS
+  NAO_BINARIE
+  OUTRO
+  PREFIRO_NAO_INFORMAR
+}
+
+enum ProfileVisibility {
+  PUBLIC
+  MEMBERS_ONLY
+  MATCHES_ONLY
+  PRIVATE
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+enum MatchStatus {
+  ACTIVE
+  UNMATCHED
+}
+
+enum ReportCategory {
+  OFENSIVO
+  RACISMO
+  LGBTFOBIA
+  MISOGINIA
+  DESRESPEITO_REGRAS
+}
+
+enum ReportStatus {
+  PENDING
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ChatType {
+  DIRECT // par 1:1, normalmente originado de um Match
+  GROUP // ex.: chat de uma Roda ou Mesa
+}
+
+enum MessageType {
+  TEXT
+  GIF // referencia uma URL externa (busca de GIF), nunca upload do usuário
+  IMAGE
+  AUDIO
+  SYSTEM // mensagens geradas pelo sistema (ex.: "vocês deram match")
+}
+
+enum RodaRole {
+  OWNER
+  MODERATOR
+  MEMBER
+}
+
+enum RodaVisibility {
+  PUBLIC
+  MEMBERS_ONLY
+  INVITE_ONLY
+}
+
+enum PostVisibility {
+  PUBLIC
+  MEMBERS_ONLY
+  RODA_ONLY
+  FRIENDS_ONLY
+}
+
+enum ReactionTarget {
+  POST
+  MESSAGE
+}
+
+// Cinco reações fixas (não texto livre) — ver docs/contexto.md §
+// "Sistema de reações". Identificadores do enum em ASCII; o rótulo
+// exibido é o comentário ao lado.
+enum ReactionType {
+  UAU // "UAU!"
+  FERA // "FERA"
+  EITA // "EITA"
+  NOPS // "NOPS"
+  PERAI // "PERAÍ"
+}
+
+enum EventoTipo {
+  PRESENCIAL
+  ONLINE
+  CLUBE // encontro fechado de membros de um "clube"/roda
+  ANALISE // roda de análise de conjuntura
+}
+
+enum EventoStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum ConviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum ConfirmacaoStatus {
+  CONFIRMED
+  WAITLISTED
+  CANCELLED
+  CHECKED_IN
+}
+
+// Regra de repetição definida pelo organizador — ver docs/contexto.md
+// § "Eventos únicos vs. recorrentes/permanentes". Evento.recurrenceFrequency
+// NULL = evento único (sujeito a exclusão automática, ver EventoCleanupJob).
+enum RecurrenceFrequency {
+  SEMANAL
+  QUINZENAL
+  MENSAL
+}
+
+enum ConsentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  MARKETING_COMMUNICATIONS
+}
+
+// =========================================================================
+// IDENTIDADE E AUTENTICAÇÃO
+// =========================================================================
+
+// DECISÃO: CPF nunca é armazenado em texto plano.
+//   - cpfHash: HMAC-SHA256(cpf_normalizado, PEPPER) — determinístico, usado
+//     para lookup de login e para a constraint de unicidade.
+//   - cpfEncrypted: AES-256-GCM (envelope encryption via KMS), opcional,
+//     só populado se houver exigência legal de recuperar o CPF completo
+//     (ex.: obrigação fiscal/antifraude). Nunca é lido em fluxos comuns.
+//   - cpfLast4: últimos 4 dígitos em texto plano, só para exibição
+//     mascarada ("***.***.**1-23") na UI.
+// Ver docs/contexto.md § "CPF e LGPD".
+model User {
+  id String @id @default(uuid())
+
+  cpfHash      String  @unique @db.Char(64) // HMAC-SHA256 hex
+  cpfEncrypted String? // ciphertext base64, nullable
+  cpfLast4     String  @db.VarChar(4)
+
+  email         String  @unique
+  emailVerified Boolean @default(false)
+
+  passwordHash String // Argon2id
+  passwordAlgo String @default("argon2id")
+
+  status UserStatus @default(PENDING_VERIFICATION)
+  role   UserRole   @default(MEMBER)
+
+  failedLoginAttempts Int       @default(0)
+  lockedUntil          DateTime?
+  lastLoginAt          DateTime?
+  lastLoginIp          String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // soft delete (LGPD: direito ao esquecimento)
+
+  profile Profile?
+
+  refreshTokens          RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  consents               UserConsent[]
+  auditLogs               AuditLog[]      @relation("AuditActor")
+
+  friendshipsSent     Friendship[] @relation("FriendshipRequester")
+  friendshipsReceived Friendship[] @relation("FriendshipAddressee")
+
+  blocksMade     Block[] @relation("BlockBlocker")
+  blocksReceived Block[] @relation("BlockBlocked")
+
+  swipesMade  Swipe[] @relation("SwipeUser")
+  swipesRecv  Swipe[] @relation("SwipeTarget")
+  matchesAsA  Match[] @relation("MatchUserA")
+  matchesAsB  Match[] @relation("MatchUserB")
+
+  chatParticipations ChatParticipant[]
+  messagesSent       Message[]         @relation("MessageSender")
+
+  rodaMemberships RodaMembro[]
+  mesaMemberships MesaParticipante[]
+
+  posts     Post[]
+  reactions Reaction[]
+
+  eventsOrganized Evento[]      @relation("EventoOrganizer")
+  convitesSent    Convite[]     @relation("ConviteInviter")
+  convitesRecv    Convite[]     @relation("ConviteInvitee")
+  confirmacoes    Confirmacao[]
+
+  homenagensEnviadas  Homenagem[] @relation("HomenagemAuthor")
+  homenagensRecebidas Homenagem[] @relation("HomenagemRecipient")
+
+  reportsFeitos     Report[] @relation("ReportReporter")
+  reportsRecebidos  Report[] @relation("ReportReportedUser")
+  reportsRevisados  Report[] @relation("ReportReviewedBy")
+
+  @@index([status])
+  @@map("users")
+}
+
+// DECISÃO: refresh tokens são armazenados com hash (nunca em texto plano),
+// permitindo revogação individual e rotação (reuse detection). Ver
+// docs/contexto.md § "Autenticação".
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  replacedByTokenHash String?
+  userAgent String?
+  ip        String?
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// DECISÃO: mesmo padrão do RefreshToken — só o hash SHA-256 do token de
+// verificação é persistido; o valor em texto plano só existe no link
+// enviado por e-mail. Token de uso único: consumido (marcando
+// consumedAt) na primeira verificação bem-sucedida. Ver
+// docs/contexto.md § "Verificação de e-mail".
+model EmailVerificationToken {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+  consumedAt DateTime?
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+model UserConsent {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        ConsentType
+  version     String // versão do documento aceito, ex. "privacy-policy-2026-01"
+  acceptedAt  DateTime    @default(now())
+  ip          String?
+
+  @@index([userId, type])
+  @@map("user_consents")
+}
+
+// Log de auditoria para acesso/alteração de dados sensíveis (LGPD art. 37/46).
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  actor     User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action    String // ex.: "cpf.decrypt", "user.export", "user.delete"
+  targetType String
+  targetId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([actorId])
+  @@map("audit_logs")
+}
+
+// =========================================================================
+// PERFIL
+// =========================================================================
+
+model Profile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  displayName String
+  bio         String?  @db.VarChar(1000)
+  birthDate   DateTime @db.Date
+  gender      Gender
+  photoUrl    String?
+  city        String?
+  state       String? @db.VarChar(2)
+
+  visibility ProfileVisibility @default(MEMBERS_ONLY)
+
+  profileBandeiras  ProfileBandeira[]
+  profileInteresses ProfileInteresse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+// Catálogo de bandeiras políticas/causas (ex.: "Socialismo", "Feminismo",
+// "Ecologia", "Antirracismo"). Mantido como tabela de referência para
+// permitir administração/curadoria e evitar strings livres.
+model Bandeira {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  description String?
+  color       String? @db.VarChar(7) // hex, ex. "#E4002B"
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  profileBandeiras ProfileBandeira[]
+  rodas            Roda[]
+  eventos          Evento[]
+
+  @@map("bandeiras")
+}
+
+model ProfileBandeira {
+  profileId  String
+  bandeiraId String
+  priority   Int      @default(0) // ordenação de exibição no perfil
+  createdAt  DateTime @default(now())
+
+  profile  Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  bandeira Bandeira @relation(fields: [bandeiraId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, bandeiraId])
+  @@map("profile_bandeiras")
+}
+
+model Interesse {
+  id       String @id @default(uuid())
+  slug     String @unique
+  name     String
+  category String? // ex.: "cultura", "esporte", "política"
+  active   Boolean @default(true)
+
+  profileInteresses ProfileInteresse[]
+
+  @@map("interesses")
+}
+
+model ProfileInteresse {
+  profileId   String
+  interesseId String
+  createdAt   DateTime @default(now())
+
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  interesse Interesse @relation(fields: [interesseId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, interesseId])
+  @@map("profile_interesses")
+}
+
+// Catálogo de emojis personalizados do chat (estilo Slack/Discord —
+// pequenos ícones curados, não upload livre por mensagem). Renderização
+// é responsabilidade do client: substitui ocorrências de `:shortcode:`
+// no texto da mensagem pela imagem correspondente encontrada aqui.
+model CustomEmoji {
+  id        String   @id @default(uuid())
+  shortcode String   @unique // ex.: "punho_erguido", usado como :punho_erguido:
+  imageUrl  String // enviada via POST /uploads
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("custom_emojis")
+}
+
+// =========================================================================
+// RELACIONAMENTOS: AMIZADES, BLOQUEIOS, SWIPES, MATCHES
+// =========================================================================
+
+// DECISÃO: pares não-ordenados (ex.: amizade, match) usam colunas
+// userMinId/userMaxId (ou requester/addressee com constraint canônica)
+// para permitir um índice único que impede duplicatas em qualquer ordem.
+// Ver docs/contexto.md § "Concorrência em relações par-a-par".
+model Friendship {
+  id           String           @id @default(uuid())
+  requesterId  String
+  addresseeId  String
+  status       FriendshipStatus @default(PENDING)
+  createdAt    DateTime         @default(now())
+  respondedAt  DateTime?
+
+  requester User @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  // canonicalKey = menor(id) || ':' || maior(id), calculado na aplicação,
+  // garante unicidade do par independente de quem pediu a amizade.
+  canonicalKey String @unique
+
+  @@index([requesterId])
+  @@index([addresseeId])
+  @@map("friendships")
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  blockerId String
+  blockedId String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  blocker User @relation("BlockBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlockBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("blocks")
+}
+
+// DECISÃO: homenagens só podem ser publicadas entre amigos mútuos —
+// checado no serviço no momento da criação (Friendship com status
+// ACCEPTED entre autor e destinatário), não é uma constraint de banco
+// (a amizade pode terminar depois sem apagar homenagens já existentes).
+// `visible` é controlado exclusivamente pelo destinatário — o autor não
+// pode ocultar a própria homenagem depois de publicada.
+model Homenagem {
+  id          String   @id @default(uuid())
+  authorId    String
+  recipientId String
+  content     String   @db.VarChar(200)
+  visible     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  author    User @relation("HomenagemAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  recipient User @relation("HomenagemRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, visible, createdAt])
+  @@map("homenagens")
+}
+
+// Denúncia de perfil ("denunciar de troll"). Categorias fixas (enum, não
+// texto livre) para permitir triagem e métricas consistentes na fila de
+// moderação. `evidenceUrls` referencia arquivos enviados via
+// POST /uploads (ver modules/uploads) — o Report em si só guarda URLs,
+// igual ao padrão já usado em Post.mediaUrls.
+model Report {
+  id             String         @id @default(uuid())
+  reporterId     String
+  reportedUserId String
+  category       ReportCategory
+  description    String?        @db.VarChar(1000)
+  evidenceUrls   String[]       @default([])
+  status         ReportStatus   @default(PENDING)
+
+  reviewedById   String?
+  reviewedAt     DateTime?
+  resolutionNote String?        @db.VarChar(1000)
+
+  createdAt DateTime @default(now())
+
+  reporter     User  @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser User  @relation("ReportReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reviewedBy   User? @relation("ReportReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([reportedUserId])
+  @@map("reports")
+}
+
+// Swipe registra a decisão unilateral (like/pass). Um Match só é criado
+// quando existem dois Swipes recíprocos com liked = true.
+model Swipe {
+  id       String   @id @default(uuid())
+  userId   String
+  targetId String
+  liked    Boolean
+  createdAt DateTime @default(now())
+
+  user   User @relation("SwipeUser", fields: [userId], references: [id], onDelete: Cascade)
+  target User @relation("SwipeTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetId])
+  @@index([targetId, liked])
+  @@map("swipes")
+}
+
+// DECISÃO: userAId é sempre o menor UUID e userBId o maior (ordenação
+// lexicográfica), aplicada na camada de serviço antes do INSERT. Isso
+// permite @@unique([userAId, userBId]) para impedir Match duplicado
+// quando dois Swipes recíprocos chegam em paralelo. Ver docs/contexto.md.
+model Match {
+  id        String      @id @default(uuid())
+  userAId   String
+  userBId   String
+  status    MatchStatus @default(ACTIVE)
+  matchedAt DateTime    @default(now())
+  unmatchedAt DateTime?
+  unmatchedById String?
+
+  userA User @relation("MatchUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  chat Chat?
+
+  @@unique([userAId, userBId])
+  @@index([userBId])
+  @@map("matches")
+}
+
+// =========================================================================
+// CHATS E MENSAGENS
+// =========================================================================
+
+model Chat {
+  id        String   @id @default(uuid())
+  type      ChatType
+  matchId   String?  @unique // presente quando type = DIRECT e origem é um Match
+  rodaId    String?  @unique // presente quando type = GROUP e chat pertence a uma Roda
+  createdAt DateTime @default(now())
+
+  // DECISÃO: preenchido quando um dos participantes de um chat DIRECT
+  // bloqueia o outro — o histórico é retido por 48h (para eventual
+  // moderação/denúncia) e então expurgado por job agendado. Ver
+  // docs/contexto.md § "Retenção após bloqueio". NULL = sem expurgo
+  // agendado (fluxo normal). O índice permite ao job encontrar
+  // rapidamente os chats vencidos sem varrer a tabela inteira.
+  purgeAt DateTime?
+
+  match Match? @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  roda  Roda?  @relation(fields: [rodaId], references: [id], onDelete: Cascade)
+
+  participants ChatParticipant[]
+  messages     Message[]
+
+  @@index([purgeAt])
+  @@map("chats")
+}
+
+model ChatParticipant {
+  chatId       String
+  userId       String
+  joinedAt     DateTime  @default(now())
+  lastReadAt   DateTime?
+  lastReadMessageId String?
+  mutedUntil   DateTime?
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([chatId, userId])
+  @@map("chat_participants")
+}
+
+// DECISÃO: id é gerado via ordenação monotônica (ULID/uuid v7 gerado na
+// aplicação) em vez de uuid v4, para que a ordem de mensagens seja
+// deduzível pelo próprio id sem depender só de createdAt (útil sob alta
+// concorrência de escrita e para paginação por cursor). Ver
+// docs/contexto.md § "Ordenação de mensagens em chat".
+model Message {
+  id        String      @id // ULID / UUIDv7 gerado na aplicação
+  chatId    String
+  senderId  String
+  type      MessageType @default(TEXT)
+  content   String?     @db.Text
+  mediaUrl  String?
+  createdAt DateTime    @default(now())
+  editedAt  DateTime?
+  deletedAt DateTime?
+
+  chat   Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender User @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  reactions Reaction[]
+
+  @@index([chatId, createdAt])
+  @@map("messages")
+}
+
+// =========================================================================
+// RODAS, MESAS
+// =========================================================================
+
+// "Roda" = grupo/comunidade temática permanente (ex.: "Roda de Economia
+// Política", associada opcionalmente a uma Bandeira).
+model Roda {
+  id          String         @id @default(uuid())
+  name        String
+  slug        String         @unique
+  description String?        @db.VarChar(2000)
+  imageUrl    String? // enviada via POST /uploads no momento da criação
+  tema        String?
+  bandeiraId  String?
+  visibility  RodaVisibility @default(PUBLIC)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  archivedAt  DateTime?
+
+  bandeira Bandeira? @relation(fields: [bandeiraId], references: [id], onDelete: SetNull)
+
+  membros RodaMembro[]
+  mesas   Mesa[]
+  posts   Post[]
+  eventos Evento[]
+  chat    Chat?
+
+  @@index([bandeiraId])
+  @@map("rodas")
+}
+
+model RodaMembro {
+  rodaId   String
+  userId   String
+  role     RodaRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  roda Roda @relation(fields: [rodaId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([rodaId, userId])
+  @@map("roda_membros")
+}
+
+// "Mesa" = sessão/subgrupo pontual dentro de uma Roda ou de um Evento
+// (ex.: mesa de debate em um encontro presencial, breakout de análise).
+model Mesa {
+  id        String   @id @default(uuid())
+  rodaId    String?
+  eventoId  String?
+  name      String
+  capacity  Int?
+  createdAt DateTime @default(now())
+
+  roda   Roda?   @relation(fields: [rodaId], references: [id], onDelete: Cascade)
+  evento Evento? @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  participantes MesaParticipante[]
+  posts         Post[]
+
+  @@index([rodaId])
+  @@index([eventoId])
+  @@map("mesas")
+}
+
+model MesaParticipante {
+  mesaId   String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  mesa Mesa @relation(fields: [mesaId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([mesaId, userId])
+  @@map("mesa_participantes")
+}
+
+// =========================================================================
+// POSTS E REAÇÕES
+// =========================================================================
+
+// DECISÃO: authorId nunca é nulo — não existe post anônimo. O author é
+// sempre incluído nas consultas de listagem (ver PostsService) para que
+// o client sempre tenha os dados necessários para o link direto ao
+// perfil; nenhum endpoint expõe um post sem essa relação resolvida.
+model Post {
+  id         String         @id @default(uuid())
+  authorId   String
+  rodaId     String? // post no mural de uma roda (fora de uma mesa específica)
+  mesaId     String? // post dentro de uma Mesa — ver docs/contexto.md § "Posts nas Mesas"
+  content    String         @db.Text
+  mediaUrls  String[]       @default([])
+  visibility PostVisibility @default(MEMBERS_ONLY)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  deletedAt  DateTime?
+
+  author User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  roda   Roda? @relation(fields: [rodaId], references: [id], onDelete: Cascade)
+  mesa   Mesa? @relation(fields: [mesaId], references: [id], onDelete: Cascade)
+
+  reactions Reaction[]
+
+  @@index([rodaId, createdAt])
+  @@index([mesaId, createdAt])
+  @@index([authorId, createdAt])
+  @@map("posts")
+}
+
+// DECISÃO: reações usam target polimórfico (targetType + targetId) em vez
+// de duas tabelas separadas, para permitir agregação e componente de UI
+// únicos. A unicidade (userId, targetType, targetId) impede reação
+// duplicada; trocar de tipo de reação é um UPDATE, não um novo INSERT.
+model Reaction {
+  id         String         @id @default(uuid())
+  userId     String
+  targetType ReactionTarget
+  targetId   String
+  type       ReactionType
+  createdAt  DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relações opcionais só para permitir joins tipados do Prisma quando o
+  // targetType corresponde; a aplicação garante consistência via serviço.
+  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId  String?
+  message Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  messageId String?
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
+  @@map("reactions")
+}
+
+// =========================================================================
+// EVENTOS, CONVITES, CONFIRMAÇÕES
+// =========================================================================
+
+model Evento {
+  id          String       @id @default(uuid())
+  title       String
+  description String?      @db.Text
+  tipo        EventoTipo
+  status      EventoStatus @default(DRAFT)
+
+  // presencial
+  address String?
+  city    String?
+  state   String? @db.VarChar(2)
+
+  // online
+  onlineUrl String?
+
+  rodaId     String?
+  bandeiraId String?
+
+  organizerId String
+  startsAt    DateTime
+  endsAt      DateTime?
+
+  // DECISÃO: capacity + confirmedCount (contador desnormalizado) permitem
+  // checar/reservar vaga com um único UPDATE condicional atômico, evitando
+  // overselling sem precisar de lock explícito de linha em todos os casos.
+  // Ver docs/contexto.md § "Confirmação de presença com capacidade".
+  capacity       Int?
+  confirmedCount Int      @default(0)
+
+  // DECISÃO: NULL = evento "único" (sujeito ao EventoCleanupJob — ver
+  // docs/contexto.md § "Eventos únicos vs. recorrentes/permanentes").
+  // Preenchido = evento "recorrente" (com recurrenceUntil definido) ou
+  // "permanente" (recurrenceUntil NULL, recorre indefinidamente) — em
+  // ambos os casos, o evento nunca é excluído automaticamente.
+  recurrenceFrequency RecurrenceFrequency?
+  recurrenceUntil     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizer User      @relation("EventoOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  roda      Roda?     @relation(fields: [rodaId], references: [id], onDelete: SetNull)
+  bandeira  Bandeira? @relation(fields: [bandeiraId], references: [id], onDelete: SetNull)
+
+  mesas        Mesa[]
+  convites     Convite[]
+  confirmacoes Confirmacao[]
+
+  @@index([rodaId])
+  @@index([startsAt])
+  @@map("eventos")
+}
+
+// DECISÃO: sem @@unique([eventoId, inviteeId]) — múltiplos convites para
+// a mesma pessoa no mesmo evento são permitidos de propósito (ex.: dois
+// amigos diferentes convidam a mesma pessoa; um lembrete reforçando um
+// convite não respondido). Ver docs/contexto.md § "Sistema de convites".
+model Convite {
+  id         String        @id @default(uuid())
+  eventoId   String
+  inviterId  String
+  inviteeId  String
+  status     ConviteStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  respondedAt DateTime?
+  expiresAt  DateTime?
+
+  evento  Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  inviter User   @relation("ConviteInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee User   @relation("ConviteInvitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@index([eventoId, inviteeId])
+  @@index([inviteeId, status])
+  @@map("convites")
+}
+
+// DECISÃO: confirmação de presença é a fonte de verdade transacional;
+// Evento.confirmedCount é mantido em sincronia pelo mesmo serviço/
+// transação que insere a Confirmacao (ver docs/contexto.md). A unicidade
+// (eventoId, userId) impede confirmação duplicada por double-submit.
+model Confirmacao {
+  id          String            @id @default(uuid())
+  eventoId    String
+  userId      String
+  status      ConfirmacaoStatus @default(CONFIRMED)
+  confirmedAt DateTime          @default(now())
+  cancelledAt DateTime?
+  checkedInAt DateTime?
+
+  evento Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventoId, userId])
+  @@index([eventoId, status])
+  @@map("confirmacoes")
+}

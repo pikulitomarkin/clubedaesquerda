@@ -1,0 +1,111 @@
+# Stack de produção da VPS (1 vCPU / 961 MB + 4 GB de swap).
+#
+# As imagens NÃO são construídas aqui: o GitHub Actions builda e publica no
+# GHCR, e esta máquina só faz `pull`. Buildar Next.js localmente com 1 vCPU
+# levaria dezenas de minutos em swap, com risco de OOM.
+#
+# Os `mem_limit` são deliberados: sem eles, um pico do Next ou do Postgres
+# faz o OOM killer escolher a vítima — e ele costuma matar justamente o
+# processo maior (a API). Com limite por container, quem estoura é contido.
+name: clube
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Tuning para RAM baixa: o padrão do Postgres assume uma máquina bem
+    # maior e sozinho já reservaria mais do que temos.
+    command: >
+      postgres
+      -c shared_buffers=96MB
+      -c effective_cache_size=256MB
+      -c work_mem=4MB
+      -c maintenance_work_mem=32MB
+      -c max_connections=40
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [clube]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Só é usado como pub/sub de WebSocket entre instâncias (contexto.md
+    # §3.3) — não guarda estado durável, então pode descartar sob pressão.
+    command: redis-server --maxmemory 48mb --maxmemory-policy allkeys-lru --save ""
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [clube]
+
+  api:
+    image: ghcr.io/${GHCR_OWNER}/clube-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      NODE_ENV: production
+      PORT: 3333
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      REDIS_URL: redis://redis:6379
+      WEB_ORIGIN: ${WEB_ORIGIN}
+      API_PUBLIC_URL: ${API_PUBLIC_URL}
+      CPF_PEPPER: ${CPF_PEPPER}
+      JWT_ACCESS_PRIVATE_KEY: ${JWT_ACCESS_PRIVATE_KEY}
+      JWT_ACCESS_PUBLIC_KEY: ${JWT_ACCESS_PUBLIC_KEY}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-30d}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+      TENOR_API_KEY: ${TENOR_API_KEY}
+    volumes:
+      # Uploads precisam sobreviver à recriação do container.
+      - uploads:/app/apps/api/uploads
+    mem_limit: 384m
+    networks: [clube]
+
+  web:
+    image: ghcr.io/${GHCR_OWNER}/clube-web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    mem_limit: 256m
+    networks: [clube]
+
+  # Túnel de saída da Cloudflare: a VPS está atrás de NAT com IP
+  # compartilhado e as portas 80/443 do IP público NÃO chegam nela. O túnel
+  # abre conexão de saída, dispensando forward de porta, e ainda termina TLS.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on: [web, api]
+    mem_limit: 64m
+    networks: [clube]
+
+volumes:
+  pgdata:
+  uploads:
+
+networks:
+  clube:
+    driver: bridge

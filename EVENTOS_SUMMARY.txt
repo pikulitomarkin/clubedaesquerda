@@ -1,0 +1,431 @@
+═══════════════════════════════════════════════════════════════════════════════
+                   FORMULÁRIOS DE EVENTOS - CLUBE DA ESQUERDA
+                         4 Tipos com Campos Específicos
+═══════════════════════════════════════════════════════════════════════════════
+
+📁 ARQUIVOS CRIADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+TIPOS & DADOS
+├─ src/types/eventos.ts
+│  ├─ TipoEvento (presencial | online | clube | analise)
+│  ├─ Recorrencia (nenhuma | semanal | quinzenal | mensal)
+│  ├─ EventoBase (campos comuns)
+│  ├─ EventoPresencial (+ local, endereco, capacidade)
+│  ├─ EventoOnline (+ link, plataforma, senha)
+│  ├─ EventoClube (+ local, recorrencia, facilitadores, tema, objetivos)
+│  ├─ EventoAnalise (+ local, recorrencia, facilitadores, textos, questões)
+│  └─ DTOs para formulários
+└─ src/data/eventos-exemplos.ts
+   ├─ EVENTOS_PRESENCIAIS (2)
+   ├─ EVENTOS_ONLINE (2)
+   ├─ EVENTOS_CLUBE (2)
+   ├─ EVENTOS_ANALISE (2)
+   └─ TODOS_EVENTOS (8 de exemplo)
+
+COMPONENTES BASE
+├─ src/components/EventoFormBase.tsx
+│  ├─ Hook useForm logic
+│  └─ CamposEventoBase (campos comuns reutilizáveis)
+│     ├─ Nome (texto)
+│     ├─ Organizador (texto)
+│     ├─ Data (date picker)
+│     ├─ Horário (time picker)
+│     ├─ Descrição (textarea, 200 chars)
+│     └─ Imagem de Capa (upload, preview)
+
+FORMULÁRIOS ESPECÍFICOS
+├─ src/components/EventoFormPresencial.tsx
+│  ├─ Campos base
+│  ├─ Seção "Informações do Local"
+│  ├─ Local (obrigatório)
+│  ├─ Endereço Completo (obrigatório)
+│  ├─ Capacidade (opcional, número)
+│  └─ Validações + Submit
+├─ src/components/EventoFormOnline.tsx
+│  ├─ Campos base
+│  ├─ Seção "Informações da Reunião"
+│  ├─ Plataforma (select: Meet, Zoom, Jitsi, Outra)
+│  ├─ Link da Reunião (URL com validação)
+│  ├─ Senha ou Token (opcional)
+│  └─ Validações + Submit
+├─ src/components/EventoFormClube.tsx
+│  ├─ Campos base
+│  ├─ Seção "Informações da Roda"
+│  ├─ Local (obrigatório)
+│  ├─ Recorrência (select: nenhuma, semanal, quinzenal, mensal)
+│  ├─ Data Final (opcional)
+│  ├─ Tema (opcional)
+│  ├─ Objetivos (opcional, 200 chars)
+│  ├─ Facilitadores (dinâmico: adicionar/remover)
+│  ├─ Auto-scroll (max-height overflow)
+│  └─ Validações + Submit
+└─ src/components/EventoFormAnalise.tsx
+   ├─ Campos base
+   ├─ Seção "Informações da Análise"
+   ├─ Local (obrigatório)
+   ├─ Recorrência (select)
+   ├─ Data Final (opcional)
+   ├─ Metodologia (opcional, 200 chars)
+   ├─ Facilitadores (dinâmico)
+   ├─ Textos para Preparar (dinâmico)
+   ├─ Questões-chave (dinâmico)
+   ├─ Auto-scroll
+   └─ Validações + Submit
+
+COMPONENTES DE LAYOUT
+├─ src/components/EventoModal.tsx
+│  ├─ Encapsula qualquer formulário
+│  ├─ Modal overlay com backdrop
+│  ├─ Header sticky com ícone + título + close
+│  ├─ Routa correto com base em `tipo`
+│  └─ Form scrollable dentro do modal
+├─ src/components/EventoList.tsx
+│  ├─ Filtros sticky top
+│  │  ├─ Busca por nome (texto)
+│  │  ├─ Tipo (select: todos/presencial/online/clube/analise)
+│  │  ├─ Apenas ativos (checkbox)
+│  │  └─ Botão "Limpar filtros"
+│  ├─ Botões de ação rápida (grid 2x2 md:4)
+│  │  ├─ Novo Presencial
+│  │  ├─ Novo Online
+│  │  ├─ Nova Roda
+│  │  └─ Nova Análise
+│  ├─ Lista de eventos
+│  │  ├─ Grid responsivo
+│  │  ├─ Cards com:
+│  │  │  ├─ Imagem de capa (preview)
+│  │  │  ├─ Nome (heading)
+│  │  │  ├─ Organizador
+│  │  │  ├─ Tipo (badge colorida)
+│  │  │  ├─ Descrição (line-clamp-2)
+│  │  │  ├─ Data formatada
+│  │  │  ├─ Horário
+│  │  │  ├─ Info específica (local/plataforma/recorrência)
+│  │  │  └─ Hover effects
+│  │  └─ Empty state
+│  └─ Stats de filtrados vs total
+
+PÁGINA COMPLETA
+└─ src/pages/EventosPage.tsx
+   ├─ Header com título e descrição
+   ├─ Notificação toast (sucesso/erro)
+   ├─ Grid de stats (4 cards)
+   │  ├─ Presenciais (x)
+   │  ├─ Online (x)
+   │  ├─ Rodas (x)
+   │  └─ Análises (x)
+   ├─ EventoList (com busca/filtros)
+   ├─ EventoModal (controlado por estado)
+   ├─ Lógica de criação
+   │  ├─ handleAbrirModal(tipo)
+   │  ├─ handleFecharModal()
+   │  ├─ handleSubmitEvento(data)
+   │  └─ showNotificacao()
+   └─ Footer spacing
+
+EXPORTAÇÕES
+└─ src/components/Eventos/index.ts
+   ├─ EventoFormPresencial
+   ├─ EventoFormOnline
+   ├─ EventoFormClube
+   ├─ EventoFormAnalise
+   ├─ EventoModal
+   ├─ EventoList
+   └─ Todos com tipos
+
+DOCUMENTAÇÃO
+├─ EVENTOS_FORMS.md (Documentação completa)
+└─ EVENTOS_SUMMARY.txt (Este arquivo)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✨ FUNCIONALIDADES
+═══════════════════════════════════════════════════════════════════════════════
+
+CAMPOS COMUNS (Todos os eventos)
+├─ Nome (texto, obrigatório)
+├─ Organizador (texto, obrigatório)
+├─ Data (date picker, obrigatório)
+├─ Horário (time picker, obrigatório)
+├─ Descrição (textarea, 200 chars max, contador)
+├─ Imagem de Capa (upload, 5MB max, preview)
+└─ Validação de preenchimento
+
+TIPO 1: PRESENCIAL 📍
+├─ Local (obrigatório)
+│  └─ Ex: "Praça da República"
+├─ Endereço Completo (obrigatório)
+│  └─ Ex: "Rua X, 123, Bairro Y, Cidade Z, Estado"
+├─ Capacidade (opcional, número)
+│  └─ Número máximo de participantes
+└─ Validações: local e endereço obrigatórios
+
+TIPO 2: ONLINE 💻
+├─ Plataforma (select obrigatório)
+│  ├─ Google Meet
+│  ├─ Zoom
+│  ├─ Jitsi
+│  └─ Outra
+├─ Link da Reunião (URL obrigatório)
+│  └─ Validação de URL
+├─ Senha ou Token (opcional)
+│  └─ Para acesso restrito
+└─ Validações: link URL válida
+
+TIPO 3: CLUBE (Roda de Conversa) 💬
+├─ Local (obrigatório)
+├─ Recorrência (select obrigatório)
+│  ├─ Nenhuma (evento único)
+│  ├─ Semanal
+│  ├─ Quinzenal
+│  └─ Mensal
+├─ Data Final (opcional)
+│  └─ Quando para a recorrência
+├─ Tema (opcional)
+│  └─ Ex: "Feminismo e Trabalho"
+├─ Objetivos (opcional, 200 chars)
+├─ Facilitadores (dinâmico)
+│  ├─ Pelo menos 1 obrigatório
+│  ├─ Adicionar mais com botão +
+│  ├─ Remover com botão X
+│  └─ Validação: nomes não vazios
+└─ Próximos Encontros (gerado automaticamente)
+
+TIPO 4: ANÁLISE (Círculo de Estudos) 📚
+├─ Local (obrigatório)
+├─ Recorrência (select obrigatório)
+│  ├─ Nenhuma
+│  ├─ Semanal
+│  ├─ Quinzenal
+│  └─ Mensal
+├─ Data Final (opcional)
+├─ Metodologia (opcional, 200 chars)
+│  └─ Ex: "Leitura prévia + debate"
+├─ Facilitadores (dinâmico, obrigatório)
+├─ Textos para Preparar (dinâmico, opcional)
+│  ├─ Adicionar com botão +
+│  ├─ Remover com botão X
+│  └─ Ex: "Marx - O Capital, cap. 1"
+├─ Questões-chave (dinâmico, opcional)
+│  └─ Ex: "Qual o papel dos intelectuais?"
+└─ Próximos Encontros (gerado automaticamente)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 INTERAÇÕES
+═══════════════════════════════════════════════════════════════════════════════
+
+CRIAR NOVO EVENTO
+1. Usuário clica "Novo [Tipo]" (qualquer botão)
+2. setTipoSelecionado(tipo)
+3. setModalAberto(true)
+4. Modal abre com formulário correto
+5. Preenche campos (validação inline)
+6. Clica "Criar Evento" ou "Cancelar"
+7. Se submeter:
+   ├─ handleSubmitEvento(data)
+   ├─ setIsLoading(true)
+   ├─ await delay(1000)
+   ├─ Novo evento criado com ID único
+   ├─ setEventos([...eventos, novoEvento])
+   ├─ setModalAberto(false)
+   ├─ showNotificacao("X criado com sucesso!")
+   ├─ setIsLoading(false)
+   └─ Lista atualiza
+8. Se cancelar:
+   ├─ handleFecharModal()
+   ├─ Modal fecha
+   └─ Sem salvar
+
+BUSCAR/FILTRAR
+1. Usuário digita na busca
+2. setFiltros({ busca: valor })
+3. eventosFiltrados recalculados
+4. Lista atualiza em tempo real
+5. Usuário seleciona tipo
+6. setFiltros({ tipo: valor })
+7. Lista filtra por tipo
+8. Checkbox "Apenas ativos"
+9. setFiltros({ apenas_ativos: true/false })
+10. Lista filtra por ativo
+11. Botão "Limpar filtros"
+12. Reset para defaults
+
+ADICIONAR FACILITADOR/TEXTO/QUESTÃO
+1. Clica "Adicionar"
+2. addItem(field)
+3. Nova linha vazia adicionada
+4. Digita conteúdo
+5. handleArrayChange(field, index, value)
+6. Array atualizado
+7. Clica X para remover
+8. removeItem(field, index)
+9. Item removido do array
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📱 LAYOUT MODAL
+═══════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────┐
+│ [Terracota] 📍 Evento Presencial              [✕] │
+│ Manifestação, ação ou encontro presencial         │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│ Campos Base                                       │
+│ ─────────────────────────────────────────────     │
+│ Nome:          [________________]                 │
+│ Organizador:   [________________]                 │
+│ Data: [__________]  Horário: [______]             │
+│ Descrição:     [________________] (0/200)         │
+│ Imagem Capa:   [Escolher arquivo] [preview]      │
+│                                                    │
+│ Informações do Local                              │
+│ ─────────────────────────────────────────────     │
+│ Local:         [________________]                 │
+│ Endereço:      [________________]                 │
+│ Capacidade:    [________]                         │
+│                                                    │
+│ ─────────────────────────────────────────────     │
+│ [Cancelar]              [Criar Evento]            │
+│                                                    │
+└────────────────────────────────────────────────────┘
+
+CLUBE FORM (com scroll):
+├─ Campos base
+├─ Local, Recorrência, Data Fim
+├─ Tema, Objetivos
+├─ Facilitadores (dinâmico)
+├─ Auto-scroll max-h-96 overflow-y
+└─ Botões sticky bottom
+
+ANÁLISE FORM (com scroll):
+├─ Campos base
+├─ Local, Recorrência, Data Fim
+├─ Metodologia
+├─ Facilitadores (dinâmico)
+├─ Textos para Preparar (dinâmico)
+├─ Questões-chave (dinâmico)
+├─ Auto-scroll
+└─ Botões sticky bottom
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔍 LISTAGEM
+═══════════════════════════════════════════════════════════════════════════════
+
+FILTROS (Sticky top)
+┌────────────────────────────────────────────────┐
+│ Filtros                            [Limpar]   │
+├─────────────────┬──────────────┬──────────────┤
+│ [Buscar...]     │ [Todos...]   │ ✓ Ativos    │
+└─────────────────┴──────────────┴──────────────┘
+Mostrando 8 de 8 eventos
+
+BOTÕES AÇÃO RÁPIDA
+┌─────────────────────────────────────────────────┐
+│ [📍 Novo Presencial] [💻 Novo Online]           │
+│ [💬 Nova Roda]       [📚 Nova Análise]          │
+└─────────────────────────────────────────────────┘
+
+STATS
+┌──────────────────────────────────────────┐
+│ 📍 2    💻 2    💬 2    📚 2              │
+│ Presenciais Online Rodas Análises       │
+└──────────────────────────────────────────┘
+
+LISTA DE EVENTOS (Grid responsivo)
+┌──────────────────────────────────────────────────┐
+│ [img] Nome Evento                  [📍 Presencial] │
+│       Organizador                                │
+│       Descrição breve...                        │
+│       📅 Data  🕐 Hora  📍 Local                │
+└──────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│ [img] Live: Análise                 [💻 Online]  │
+│       Coletivo de Mídia                         │
+│       Discussão em tempo real...                │
+│       📅 Data  🕐 Hora  💻 Meet                 │
+└──────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 DADOS DE EXEMPLO
+═══════════════════════════════════════════════════════════════════════════════
+
+PRESENCIAL (2)
+1. 8 de Março - Greve Internacionalista
+   ├─ Organizador: Coletivo Feminista
+   ├─ Data: 08/03/2026 14:00
+   ├─ Local: Av. Paulista
+   ├─ Endereço: Avenida Paulista, São Paulo - SP
+   ├─ Capacidade: 5000
+   └─ Confirmados: 3200
+
+2. Seminário: Imperialismos Contemporâneos
+   ├─ Organizador: Núcleo de Estudos
+   ├─ Data: 15/04/2026 09:00
+   ├─ Local: Centro Cultural
+   ├─ Endereço: Rua Exemplo, 123, São Paulo - SP
+   └─ Capacidade: 200
+
+ONLINE (2)
+1. Live: Análise da Conjuntura Política
+   ├─ Data: 20/03/2026 19:00
+   ├─ Plataforma: Google Meet
+   └─ Link: https://meet.google.com/abc-def-ghi
+
+2. Webinar: Direitos LGBTQ+ Globalmente
+   ├─ Data: 10/05/2026 15:00
+   ├─ Plataforma: Zoom
+   ├─ Link: https://zoom.us/j/123456789
+   └─ Senha: 123456
+
+CLUBE (2)
+1. Roda de Conversa - Feminismo e Trabalho
+   ├─ Organizador: Marina Silva
+   ├─ Recorrência: Semanal
+   ├─ Tema: Gênero e Trabalho
+   ├─ Facilitadores: Marina Silva, Ana Costa
+   └─ Próximos: 25/08, 01/09, 08/09, 15/09
+
+2. Ação Comunitária - Horta Urbana
+   ├─ Organizador: Fernanda Dias
+   ├─ Recorrência: Semanal
+   ├─ Facilitadores: Fernanda Dias, João Santos
+   └─ Próximos: 20/08, 27/08, 03/09
+
+ANÁLISE (2)
+1. Círculo de Estudos - Marxismo Contemporâneo
+   ├─ Organizador: Lucas Oliveira
+   ├─ Recorrência: Quinzenal
+   ├─ Textos: Althusser, Harvey
+   ├─ Facilitadores: Lucas Oliveira, prof. Dr. André
+   └─ Próximos: 01/09, 15/09, 29/09
+
+2. Análise Política - Eleições e Organização
+   ├─ Organizador: João Silva
+   ├─ Recorrência: Mensal
+   ├─ Facilitadores: João Silva, Coletivo X
+   └─ Próximos: 10/10, 10/11, 10/12
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ STATUS: COMPLETO
+
+Sistema de formulários de eventos totalmente funcional:
+✅ 4 tipos com campos específicos
+✅ Modal com encapsulamento
+✅ Validações por tipo
+✅ Upload de imagem
+✅ Campos dinâmicos (facilitadores, textos, questões)
+✅ Listagem com busca e filtros
+✅ Stats e ação rápida
+✅ Dados de exemplo
+✅ Notificações de sucesso/erro
+✅ Documentação completa
+
+PRONTO PARA USAR! 🚀
+
+═══════════════════════════════════════════════════════════════════════════════

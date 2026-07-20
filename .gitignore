@@ -1,0 +1,30 @@
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+out/
+.turbo/
+coverage/
+*.log
+.env
+.env*.local
+.DS_Store
+*.tsbuildinfo
+
+# Arquivos enviados localmente via POST /uploads (dev) — em produção isso
+# vira object storage (S3/GCS), não fica no repo.
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
+uploads/
+
+# Credenciais de infraestrutura — o repositório vai para o GitHub, e nada
+# aqui pode vazar junto. CPF_PEPPER e as chaves RS256 existem SOMENTE no
+# servidor (ver contexto.md §2); nunca versionar.
+acesso vps
+*.pem
+*.key
+id_ed25519*
+id_rsa*
+.env.production
+

@@ -1,0 +1,366 @@
+═══════════════════════════════════════════════════════════════════════════════
+                   DESIGN SYSTEM - CLUBE DA ESQUERDA
+                      Sistema de Design em Tailwind CSS
+═══════════════════════════════════════════════════════════════════════════════
+
+📁 ARQUIVOS CRIADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. tailwind.config.ts
+   ├─ Configuração principal do Tailwind
+   ├─ Tokens de cores (linen, terracotta, embroidery)
+   ├─ Definições de tipografia (3 font families)
+   ├─ Efeitos de sombra e animações
+   └─ Background patterns com textura de linho
+
+2. src/styles/design-system.css
+   ├─ Imports de fontes Google (Caveat, Dancing Script)
+   ├─ Resets e estilos base
+   ├─ Tipografia (heading, subheading, body, embroidery)
+   ├─ Efeito de bastidor de bordado (.embroidery-frame)
+   ├─ Estilos de botão 3D reutilizável (.embroidery-button)
+   ├─ 6 variações de cor de linha de bordado
+   ├─ Efeitos de sombra 3D e pressão
+   ├─ Suporte a modo escuro (dark mode)
+   └─ Animação de pressão de botão (0.15s)
+
+3. src/styles/design-tokens.ts
+   ├─ Tokens exportáveis para uso em TypeScript
+   ├─ Cores (linen, terracotta, embroidery, thread)
+   ├─ Tipografia (fonts, sizes)
+   ├─ Sombras e efeitos
+   ├─ Animações
+   └─ Spacing e border-radius
+
+4. src/components/EmbroideryButton.tsx
+   ├─ Componente React reutilizável e parametrizável
+   ├─ Props:
+   │  ├─ threadColor: 'black' | 'white' | 'red' | 'gold' | 'green' | 'blue'
+   │  ├─ size: 'sm' | 'md' | 'lg'
+   │  ├─ variant: 'primary' | 'secondary'
+   │  ├─ isLoading: boolean
+   │  └─ disabled: boolean
+   ├─ Efeitos:
+   │  ├─ Hover: sombra aumenta, sobe 1px
+   │  ├─ Active: efeito de pressão 3D com animação
+   │  ├─ Focus: ring com cor terracota
+   │  └─ Disabled: opacidade reduzida
+   └─ Acessibilidade: prefers-reduced-motion
+
+5. src/components/EmbroideryLogo.tsx
+   ├─ Logo com bastidor de bordado
+   ├─ Props:
+   │  ├─ size: 'sm' | 'md' | 'lg'
+   │  └─ className: string (customização adicional)
+   └─ Textos em cursiva dentro do bastidor
+
+6. src/components/index.ts
+   ├─ Exportações centralizadas
+   ├─ EmbroideryButton com tipos
+   └─ EmbroideryLogo
+
+7. src/pages/DesignSystemShowcase.tsx
+   ├─ Página completa de demonstração
+   ├─ Seções:
+   │  ├─ Logo
+   │  ├─ Tipografia (4 estilos)
+   │  ├─ Paleta de cores (3 grupos)
+   │  ├─ Cores de linha (6 variações)
+   │  ├─ Botões (tamanhos, cores, variantes, estados)
+   │  └─ Efeitos especiais (bastidor, textura, sombras)
+   └─ Componentes interativos para teste
+
+8. html-examples.html
+   ├─ Exemplos HTML/CSS puro (sem React)
+   ├─ Demonstração completa do design system
+   ├─ Classes CSS reutilizáveis
+   └─ Exemplos práticos de uso
+
+9. DESIGN_SYSTEM.md
+   ├─ Documentação completa
+   ├─ Índice e estrutura
+   ├─ Guia de uso (setup, componentes, customização)
+   ├─ Referências de cores e tipografia
+   ├─ Exemplos de código
+   └─ Tabelas de referência
+
+10. DESIGN_SYSTEM_SUMMARY.txt
+    └─ Este arquivo
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎨 PALETA DE CORES
+═══════════════════════════════════════════════════════════════════════════════
+
+LINEN (Linho) - Fundo Principal
+├─ Sand: #cdbfa7 (primária)
+├─ Claras: #faf8f6 até #d7ccb8
+└─ Escuras: #b8a78a até #7a6343
+
+TERRACOTTA - Destaque e Botões
+├─ Main: #ed8242 (primária)
+├─ Claras: #fdf6f2 até #f19c6a
+└─ Escuras: #d86d2e até #7a341a
+
+EMBROIDERY - Texto e Contraste
+├─ Black: #1a1a1a (texto principal)
+├─ Dark: #3a3a3a (subtítulos)
+└─ Gray: #5a5a5a (texto secundário)
+
+THREAD (Linhas de Bordado) - 6 Variações
+├─ Preta:  #1a1a1a
+├─ Branca: #ffffff
+├─ Vermelha: #d32f2f
+├─ Dourada: #f9a825
+├─ Verde: #2e7d32
+└─ Azul: #1976d2
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📝 TIPOGRAFIA
+═══════════════════════════════════════════════════════════════════════════════
+
+HEADING (Títulos)
+├─ Fonte: Caveat (Google Fonts)
+├─ Tamanho: 2.5rem
+├─ Peso: 700 (Bold)
+├─ Linha: 1.2
+└─ Espaçamento: 0.05em
+
+SUBHEADING (Subtítulos)
+├─ Fonte: Caveat (Google Fonts)
+├─ Tamanho: 1.5rem
+├─ Peso: 400 (Regular)
+├─ Linha: 1.3
+└─ Espaçamento: normal
+
+BODY (Parágrafo)
+├─ Fonte: System Font (Arial-like)
+├─ Tamanho: 12px (0.75rem)
+├─ Peso: 400
+├─ Linha: 1.5
+└─ Espaçamento: normal
+
+EMBROIDERY (Botões/Efeitos)
+├─ Fonte: Dancing Script (Google Fonts)
+├─ Tamanho: 1rem
+├─ Peso: 700 (Bold)
+├─ Linha: 1
+└─ Espaçamento: 0.05em (UPPERCASE)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔘 COMPONENTE: EmbroideryButton
+═══════════════════════════════════════════════════════════════════════════════
+
+PARÂMETROS
+├─ threadColor (color da linha bordada)
+│  ├─ 'black' (padrão)
+│  ├─ 'white'
+│  ├─ 'red'
+│  ├─ 'gold'
+│  ├─ 'green'
+│  └─ 'blue'
+├─ size (tamanho)
+│  ├─ 'sm' (pequeno)
+│  ├─ 'md' (médio, padrão)
+│  └─ 'lg' (grande)
+├─ variant (estilo)
+│  ├─ 'primary' (terracota, padrão)
+│  └─ 'secondary' (linho)
+├─ isLoading (mostra spinner)
+│  └─ boolean
+└─ disabled (desabilita botão)
+   └─ boolean
+
+EFEITOS
+├─ HOVER: +sombra, subir 1px
+├─ ACTIVE: pressão 3D com animação 0.15s
+├─ FOCUS: ring terracota
+├─ DISABLED: opacidade 60%
+└─ TEXT-SHADOW: efeito de bordado com thread color
+
+EXEMPLOS
+
+  <!-- Básico -->
+  <EmbroideryButton>Clique</EmbroideryButton>
+
+  <!-- Com cor de linha -->
+  <EmbroideryButton threadColor="gold">Premium</EmbroideryButton>
+
+  <!-- Tamanho grande, linha vermelha -->
+  <EmbroideryButton size="lg" threadColor="red">Importante</EmbroideryButton>
+
+  <!-- Secundário com linha verde -->
+  <EmbroideryButton variant="secondary" threadColor="green">Aprovado</EmbroideryButton>
+
+  <!-- Carregando -->
+  <EmbroideryButton isLoading={true}>Enviando...</EmbroideryButton>
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🖼️ COMPONENTE: EmbroideryLogo
+═══════════════════════════════════════════════════════════════════════════════
+
+PARÂMETROS
+├─ size (tamanho)
+│  ├─ 'sm' (w-24 h-24)
+│  ├─ 'md' (w-40 h-40, padrão)
+│  └─ 'lg' (w-56 h-56)
+└─ className (customização Tailwind)
+
+CARACTERÍSTICAS
+├─ Bastidor de bordado com textura de madeira
+├─ Texto "Clube da Esquerda" em cursiva
+├─ Efeitos de sombra 3D
+└─ Responsivo a tamanhos
+
+EXEMPLOS
+
+  <EmbroideryLogo size="sm" />
+  <EmbroideryLogo size="md" className="mx-auto" />
+  <EmbroideryLogo size="lg" />
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✨ EFEITOS ESPECIAIS
+═══════════════════════════════════════════════════════════════════════════════
+
+BASTIDOR (.embroidery-frame)
+├─ Borda em madeira (3px #8b7355)
+├─ Gradiente radial de luz
+├─ Sombra interna e externa
+├─ Pino no topo (efeito 3D)
+└─ Dashed border interno para profundidade
+
+TEXTURA DE LINHO (.bg-linen-texture)
+├─ Gradientes lineares cruzados (padrão de linho)
+├─ Gradientes radiais de sombra
+├─ SVG padrão diagonal para profundidade
+└─ Aspecto realista de tecido
+
+STITCH EFFECT (.embroidery-stitch)
+├─ Underline simulando pontos de costura
+├─ Padrão: 3px sólido, 3px transparente
+└─ Animado com color atual do texto
+
+SOMBRA 3D
+├─ .shadow-embroidery: leve (0 2px 4px)
+├─ .shadow-embroidery-3d: média (0 4px 8px)
+└─ .shadow-embroidery-pressed: pressão (inset)
+
+ANIMAÇÃO
+├─ @keyframes buttonPress
+├─ Duração: 0.15s
+├─ Timing: ease-out
+├─ Movimento: translateY 2px (0→2px→0)
+└─ Efeito: pressão visual do botão
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📚 COMO USAR
+═══════════════════════════════════════════════════════════════════════════════
+
+1. IMPORTAR CSS (em seu main.ts, App.tsx, ou index.html)
+   ────────────────────────────────────────────────────
+   import '@/styles/design-system.css';
+
+2. USAR COMPONENTES REACT
+   ───────────────────────
+   import { EmbroideryButton, EmbroideryLogo } from '@/components';
+
+   export function App() {
+     return (
+       <div className="bg-linen-texture min-h-screen">
+         <EmbroideryLogo size="md" />
+         <EmbroideryButton threadColor="gold">Enviar</EmbroideryButton>
+       </div>
+     );
+   }
+
+3. USAR EM HTML PURO
+   ──────────────────
+   <link rel="stylesheet" href="src/styles/design-system.css">
+   <script src="https://cdn.tailwindcss.com"></script>
+
+   <button class="embroidery-button embroidery-thread-gold">
+     Enviar
+   </button>
+
+4. USAR TOKENS TYPESCRIPT
+   ──────────────────────
+   import { colors, typography, shadows } from '@/styles/design-tokens';
+
+   const style = {
+     backgroundColor: colors.terracotta.main,
+     fontFamily: typography.fonts.heading,
+     boxShadow: shadows.embroidery3d,
+   };
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 CUSTOMIZAÇÕES RÁPIDAS
+═══════════════════════════════════════════════════════════════════════════════
+
+ALTERAR CORES PRIMÁRIAS:
+├─ Edite tailwind.config.ts
+├─ Procure por colors: { linen: {...}, terracotta: {...} }
+└─ Customize os valores hex
+
+ADICIONAR NOVA COR DE LINHA:
+├─ 1. Adicione classe CSS em design-system.css
+├─ 2. .embroidery-thread-seucor { color: #valor; }
+├─ 3. Adicione ao tipo ThreadColor em EmbroideryButton.tsx
+└─ 4. Use: <EmbroideryButton threadColor="seucor">
+
+TROCAR FONTES:
+├─ Atualize import em design-system.css
+├─ Ou use fontes locais em public/fonts/
+└─ Modifique @font-face rules
+
+AJUSTAR TAMANHOS:
+├─ Edite sizeClasses em EmbroideryButton.tsx
+├─ Ou customize em tailwind.config.ts
+└─ fontSize section
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 CHECKLIST DE INTEGRAÇÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+□ Importar design-system.css no arquivo principal
+□ Configurar Tailwind CSS no projeto (se não estiver)
+□ Importar fontes Google (já inclusos em design-system.css)
+□ Copiar componentes React para src/components/
+□ Adicionar tailwind.config.ts ao projeto
+□ Testar componentes na página de showcase
+□ Customizar cores conforme marca
+□ Documentar customizações no projeto
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🌐 COMPATIBILIDADE
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ React 18+
+✓ Tailwind CSS 3+
+✓ Chrome, Firefox, Safari, Edge (últimas 2 versões)
+✓ Dark Mode (prefers-color-scheme)
+✓ Reduced Motion (prefers-reduced-motion)
+✓ Acessibilidade (WCAG 2.1 AA)
+✓ Responsividade (mobile-first)
+✓ HTML puro + CSS
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📖 REFERÊNCIAS
+═══════════════════════════════════════════════════════════════════════════════
+
+→ DESIGN_SYSTEM.md       - Documentação completa
+→ html-examples.html     - Exemplos de uso
+→ DesignSystemShowcase   - Página interativa de demo
+→ design-tokens.ts       - Tokens TypeScript
+→ tailwind.config.ts     - Configuração Tailwind
+→ design-system.css      - Estilos CSS customizados
+
+═══════════════════════════════════════════════════════════════════════════════

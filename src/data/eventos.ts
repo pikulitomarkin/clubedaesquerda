@@ -1,0 +1,81 @@
+import type { Evento } from '@/types/public-profile';
+
+export const EVENTOS: Evento[] = [
+  {
+    id: 'evento-1',
+    title: '8 de Março - Greve Internacionalista',
+    description:
+      'Manifestação conjunta pelo Dia Internacional da Mulher. Parada saindo da Av. Paulista.',
+    startDate: new Date(2026, 2, 8, 14, 0),
+    endDate: new Date(2026, 2, 8, 18, 0),
+    location: 'Av. Paulista, São Paulo - SP',
+    category: 'manifestacao',
+    participantCount: 5000,
+    status: 'agendado',
+    slug: 'greve-8-marco',
+  },
+  {
+    id: 'evento-2',
+    title: 'Seminário: Imperialismos Contemporâneos',
+    description:
+      'Seminário de dois dias com pesquisadores sobre política internacional e imperialismo.',
+    startDate: new Date(2026, 3, 15, 9, 0),
+    endDate: new Date(2026, 3, 16, 18, 0),
+    location: 'Centro Cultural (endereço será divulgado)',
+    category: 'formacao',
+    participantCount: 200,
+    status: 'agendado',
+    slug: 'seminario-imperialismo',
+  },
+  {
+    id: 'evento-3',
+    title: 'Festival Cultural de Resistência',
+    description: 'Música, dança, artes visuais e gastronomia em celebração da cultura de luta.',
+    startDate: new Date(2026, 4, 1, 12, 0),
+    endDate: new Date(2026, 4, 3, 23, 59),
+    location: 'Parque da Independência, São Paulo - SP',
+    category: 'cultural',
+    participantCount: 3000,
+    status: 'agendado',
+    slug: 'festival-resistencia',
+  },
+  {
+    id: 'evento-4',
+    title: 'Debate Público - Eleições e Organização',
+    description:
+      'Discussão sobre o processo eleitoral e alternativas de organização política autônoma.',
+    startDate: new Date(2026, 5, 10, 19, 0),
+    endDate: new Date(2026, 5, 10, 21, 30),
+    location: 'Auditório do Centro de Referência (virtual também)',
+    category: 'debate',
+    participantCount: 150,
+    status: 'agendado',
+    slug: 'debate-eleicoes',
+  },
+  {
+    id: 'evento-5',
+    title: '1º de Maio - Marcha da Classe Trabalhadora',
+    description:
+      'Mobilização pelo Dia do Trabalho. Concentração em praça pública com falas de lideranças.',
+    startDate: new Date(2026, 4, 1, 10, 0),
+    endDate: new Date(2026, 4, 1, 16, 0),
+    location: 'Praça da República, São Paulo - SP',
+    category: 'manifestacao',
+    participantCount: 8000,
+    status: 'agendado',
+    slug: 'maio-trabalhadores',
+  },
+  {
+    id: 'evento-6',
+    title: 'Aula Aberta - História da Esquerda no Brasil',
+    description:
+      'Aula com historiador sobre movimentos de esquerda do Brasil. Entrada gratuita e aberta.',
+    startDate: new Date(2026, 2, 25, 19, 0),
+    endDate: new Date(2026, 2, 25, 21, 0),
+    location: 'Sala de aula, Universidade Federal',
+    category: 'formacao',
+    participantCount: 120,
+    status: 'agendado',
+    slug: 'aula-historia-esquerda',
+  },
+];
