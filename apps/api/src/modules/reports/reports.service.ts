@@ -5,8 +5,11 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { existsSync } from "node:fs";
+import { basename, resolve, sep } from "node:path";
 import { ReportStatus } from "@clube/database";
 import { PrismaService } from "../common/prisma/prisma.service";
+import { EVIDENCE_UPLOAD_DIR } from "../common/uploads/upload.constants";
 import { CreateReportDto } from "./dto/create-report.dto";
 import { ResolveReportDto } from "./dto/resolve-report.dto";
 
@@ -57,9 +60,45 @@ export class ReportsService {
         reportedUserId: dto.reportedUserId,
         category: dto.category,
         description: dto.description,
-        evidenceUrls: dto.evidenceUrls ?? [],
+        // A coluna se chama evidenceUrls por herança do schema, mas passa a
+        // guardar REFERÊNCIAS opacas (UUID.ext), não URLs — o anexo é privado
+        // e só sai pela rota autenticada getEvidenceFile.
+        evidenceUrls: dto.evidenceRefs ?? [],
       },
     });
+  }
+
+  // Resolve o caminho físico de um anexo de denúncia para streaming, e
+  // registra o acesso em AuditLog (LGPD art. 37 — quem viu qual evidência,
+  // quando). Só é chamado pela rota restrita a ADMIN/MODERATOR.
+  async getEvidenceFile(reportId: string, index: number, actorId: string) {
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+      select: { id: true, evidenceUrls: true },
+    });
+    if (!report) throw new NotFoundException("Denúncia não encontrada");
+
+    const ref = report.evidenceUrls[index];
+    // basename() descarta qualquer componente de diretório; combinado com o
+    // startsWith abaixo, impede path traversal mesmo que uma ref corrompida
+    // tenha escapado da validação do DTO.
+    const name = ref ? basename(ref) : "";
+    const full = resolve(EVIDENCE_UPLOAD_DIR, name);
+    if (!name || !full.startsWith(EVIDENCE_UPLOAD_DIR + sep) || !existsSync(full)) {
+      throw new NotFoundException("Evidência não encontrada");
+    }
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorId,
+        action: "report.evidence.view",
+        targetType: "Report",
+        targetId: reportId,
+        metadata: { index, ref: name },
+      },
+    });
+
+    return { path: full, filename: name };
   }
 
   listQueue(status?: ReportStatus, cursor?: string, take = 20) {

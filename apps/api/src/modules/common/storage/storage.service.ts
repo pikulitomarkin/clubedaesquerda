@@ -1,8 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { unlink } from "node:fs/promises";
 import { basename, resolve } from "node:path";
+import { PUBLIC_UPLOAD_DIR } from "../uploads/upload.constants";
 
-const UPLOADS_DIR = resolve(process.cwd(), "uploads");
+// URLs públicas (/uploads/<nome>) resolvem para o diretório público, que é
+// onde a mídia de perfil/roda/post é gravada (ver upload.constants).
+const UPLOADS_DIR = PUBLIC_UPLOAD_DIR;
 
 // Remoção dos arquivos físicos referenciados por URLs de upload.
 //

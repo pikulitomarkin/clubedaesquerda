@@ -3,12 +3,18 @@ import cookieParser from "cookie-parser";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
-import { join } from "node:path";
+import { mkdirSync } from "node:fs";
 import type { ServerResponse } from "node:http";
 import { AppModule } from "./app.module";
+import { EVIDENCE_UPLOAD_DIR, PUBLIC_UPLOAD_DIR } from "./modules/common/uploads/upload.constants";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Garante os dois diretórios de upload (o volume pode montar vazio no
+  // primeiro boot). multer com destino em string não os cria sozinho.
+  mkdirSync(PUBLIC_UPLOAD_DIR, { recursive: true });
+  mkdirSync(EVIDENCE_UPLOAD_DIR, { recursive: true });
 
   app.use(cookieParser());
 
@@ -29,15 +35,16 @@ async function bootstrap() {
     next();
   });
 
-  // Serve os arquivos de ./uploads (evidências de denúncia, mídia de
-  // posts) em /uploads/<arquivo> — ver modules/uploads.
+  // Serve APENAS o diretório público (mídia de perfil/roda/post) em
+  // /uploads/. A evidência de denúncia fica em uploads/evidence/, FORA deste
+  // diretório, e por isso nunca é acessível estaticamente — só pela rota
+  // autenticada GET /reports/:id/evidence/:index (ADMIN/MODERATOR + AuditLog).
   //
   // Content-Disposition: attachment é a segunda barreira contra conteúdo
-  // ativo servido na origem da API (a primeira é a extensão derivada do
-  // MIME validado, ver UploadsController): mesmo que um arquivo carregue
-  // HTML/JS no corpo, o browser baixa em vez de renderizar, então não há
-  // execução same-origin capaz de chamar /auth/refresh e roubar sessão.
-  app.useStaticAssets(join(process.cwd(), "uploads"), {
+  // ativo servido na origem da API (a primeira é a extensão derivada do MIME
+  // validado): mesmo que um arquivo carregue HTML/JS no corpo, o browser
+  // baixa em vez de renderizar, então não há execução same-origin.
+  app.useStaticAssets(PUBLIC_UPLOAD_DIR, {
     prefix: "/uploads/",
     setHeaders: (res) => {
       res.setHeader("Content-Disposition", "attachment");

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { EmbroideryButton } from "./EmbroideryButton";
 import { FormTextarea } from "./FormTextarea";
 import { useAuth } from "@/lib/auth-context";
-import { ApiError, createReport, REPORT_CATEGORIES, uploadFile, type ReportCategory } from "@/lib/api";
+import { ApiError, createReport, REPORT_CATEGORIES, uploadEvidence, type ReportCategory } from "@/lib/api";
 
 export function ReportModal({
   reportedUserId,
@@ -28,16 +28,16 @@ export function ReportModal({
     setError(null);
 
     try {
-      const evidenceUrls: string[] = [];
+      const evidenceRefs: string[] = [];
       if (files) {
         for (const file of Array.from(files)) {
-          const { url } = await uploadFile(file, accessToken);
-          evidenceUrls.push(url);
+          const { ref } = await uploadEvidence(file, accessToken);
+          evidenceRefs.push(ref);
         }
       }
 
       await createReport(
-        { reportedUserId, category, description: description || undefined, evidenceUrls },
+        { reportedUserId, category, description: description || undefined, evidenceRefs },
         accessToken,
       );
       setDone(true);

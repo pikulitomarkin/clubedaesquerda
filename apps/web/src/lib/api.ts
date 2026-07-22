@@ -202,7 +202,7 @@ export const REPORT_CATEGORIES = [
 export type ReportCategory = (typeof REPORT_CATEGORIES)[number]["value"];
 
 export function createReport(
-  dto: { reportedUserId: string; category: ReportCategory; description?: string; evidenceUrls?: string[] },
+  dto: { reportedUserId: string; category: ReportCategory; description?: string; evidenceRefs?: string[] },
   token: string,
 ) {
   return request<{ id: string }>("/reports", token, {
@@ -211,10 +211,19 @@ export function createReport(
   });
 }
 
+// Mídia pública (foto de perfil, capa de roda, imagem de post): devolve URL.
 export async function uploadFile(file: File, token: string) {
   const formData = new FormData();
   formData.append("file", file);
   return request<{ url: string }>("/uploads", token, { method: "POST", body: formData });
+}
+
+// Anexo de denúncia: vai para o diretório PRIVADO e devolve uma referência
+// opaca (não uma URL pública) — só moderação lê, via rota autenticada.
+export async function uploadEvidence(file: File, token: string) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return request<{ ref: string }>("/reports/evidence", token, { method: "POST", body: formData });
 }
 
 // --- Chat ---

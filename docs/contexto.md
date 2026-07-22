@@ -583,19 +583,37 @@ sem depender de NLP sobre texto arbitrário.
   (`RolesGuard`) pode listar a fila (`GET /reports`) ou resolver
   (`PATCH /reports/:id` → `IN_REVIEW`/`RESOLVED`/`DISMISSED`), com o
   revisor e o horário registrados (`reviewedById`, `reviewedAt`).
-- **Upload de evidências**: `POST /uploads` (multipart, `multer`,
-  autenticado) grava em disco local (`apps/api/uploads/`) e devolve uma
-  URL **absoluta** (`API_PUBLIC_URL/uploads/<arquivo>`, servida
-  estaticamente via `app.useStaticAssets`) — absoluta porque essa mesma
-  URL alimenta campos validados com `IsUrl({ require_protocol: true })`
-  em outros módulos (`Roda.imageUrl`, `CustomEmoji.imageUrl`), e uma URL
-  relativa não passaria nessa validação. `Report.evidenceUrls` só guarda
-  essas URLs — o mesmo padrão já usado em `Post.mediaUrls`. Decisão
-  consciente de **não** integrar um object storage (S3/GCS) ainda: não
-  há credenciais de bucket provisionadas nesta fase, e trocar o storage
-  engine do `multer` por um adapter de object storage é uma mudança
-  isolada neste módulo quando isso for necessário (ex.: rodar em mais de
-  uma instância, onde disco local por processo deixa de funcionar).
+- **DECISÃO: dois regimes de upload, público e privado** (upload.constants).
+  O diretório `uploads/` tem dois subdiretórios com acesso distinto:
+  - `uploads/public/` — mídia que aparece no produto (foto de perfil, capa
+    de roda, imagem de post). Servida por `/uploads/<arquivo>`
+    (`useStaticAssets` aponta para `public/`), com `Content-Disposition:
+    attachment` + `nosniff`. `POST /uploads` grava aqui e devolve a URL
+    absoluta usada em `Roda.imageUrl`, `Post.mediaUrls` etc.
+  - `uploads/evidence/` — anexos de denúncia. **Nunca** servidos
+    estaticamente (ficam FORA do diretório público). `POST /reports/evidence`
+    grava aqui e devolve uma **referência opaca** (`UUID.ext`), não uma URL.
+    A referência vai em `CreateReportDto.evidenceRefs` (validado por regex
+    `UUID.ext`, sem barras/`..`) e é guardada em `Report.evidenceUrls` (nome
+    de coluna herdado; agora contém refs, não URLs).
+- **Leitura de evidência**: só por `GET /reports/:id/evidence/:index`,
+  restrita a `ADMIN`/`MODERATOR` (`RolesGuard`), que faz *stream* do arquivo
+  e grava **`AuditLog`** (`report.evidence.view`, com ator/índice/ref) — a
+  prestação de contas de acesso a dado sensível que a LGPD (art. 37) exige.
+  Por que isto existe: antes, a evidência (print de assédio de pessoa real)
+  ia para o mesmo diretório público das fotos de perfil e ficava legível por
+  qualquer um com a URL. Este era o furo **C3** da auditoria de segurança.
+- **Object storage (S3/GCS) segue adiado** de propósito: sem credenciais de
+  bucket nesta fase. `StorageService` já isola a remoção de arquivos, e o
+  `multer` está por trás de `uploadInterceptorOptions`, então trocar disco
+  local por um adapter é uma mudança contida quando rodar em mais de uma
+  instância (onde disco por processo deixa de servir).
+- **Ainda aberto (defesa em profundidade, não bloqueia lançamento)**: a
+  mídia de `uploads/public/` continua legível por link direto — semipública
+  por natureza (aparece no feed). A evolução planejada é **URL assinada
+  (HMAC + TTL, assinada na leitura)**, que exige percorrer os ~8 caminhos de
+  leitura que devolvem `photoUrl`/`imageUrl`/`mediaUrl(s)` e ajustar o
+  contrato do frontend — feito como passo separado.
 - Denunciar não exige que os perfis não estejam bloqueados entre si —
   ao contrário de amizade/chat, um usuário deve poder denunciar alguém
   que já bloqueou (ou que o bloqueou).
