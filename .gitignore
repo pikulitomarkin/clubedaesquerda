@@ -13,10 +13,12 @@ coverage/
 *.tsbuildinfo
 
 # Arquivos enviados localmente via POST /uploads (dev) — em produção isso
-# vira object storage (S3/GCS), não fica no repo.
-apps/api/uploads/*
-!apps/api/uploads/.gitkeep
-uploads/
+# vira object storage (S3/GCS), não fica no repo. Regras ANCORADAS na raiz
+# (barra inicial): um "uploads/" solto casaria também o código-fonte em
+# apps/api/src/modules/common/uploads/, que precisa ser versionado.
+/apps/api/uploads/*
+!/apps/api/uploads/.gitkeep
+/uploads/
 
 # Credenciais de infraestrutura — o repositório vai para o GitHub, e nada
 # aqui pode vazar junto. CPF_PEPPER e as chaves RS256 existem SOMENTE no
