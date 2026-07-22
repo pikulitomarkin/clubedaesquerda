@@ -1,0 +1,3 @@
+# Mantém apps/web/public/ no repositório. O Dockerfile do web copia esta
+# pasta para a imagem standalone (COPY --from=build .../public); sem ela, o
+# build falha com "/app/apps/web/public: not found".
