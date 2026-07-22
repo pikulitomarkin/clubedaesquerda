@@ -1,55 +1,69 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { createTransport, Transporter } from "nodemailer";
 
-// Transporte SMTP genérico (funciona com qualquer provedor: SES, Resend,
-// Mailgun, Gmail, ou Mailtrap/Maildev em desenvolvimento) — ver
-// .env.example (SMTP_*). Envio é sempre disparado fora da transação de
-// escrita que o originou (ver docs/contexto.md § "Verificação de e-mail"),
-// para não acoplar a latência/disponibilidade do provedor de e-mail à
-// resposta da API.
+// Envio via API HTTP do Resend (https://resend.com/docs). Preferida ao SMTP
+// porque muitos provedores de VPS bloqueiam as portas de saída 25/465/587 —
+// a API é HTTPS puro e não sofre disso. Sem SDK: `fetch` é global no Node 20.
+//
+// O envio é sempre disparado FORA da transação de escrita que o originou
+// (ver docs/contexto.md § "Verificação de e-mail"), e uma falha nunca
+// derruba o cadastro — apenas loga; o usuário pode reenviar pelo endpoint
+// dedicado.
+const RESEND_ENDPOINT = "https://api.resend.com/emails";
+
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private readonly transporter: Transporter;
+  private readonly apiKey: string | undefined;
   private readonly from: string;
   private readonly webOrigin: string;
 
   constructor(private readonly config: ConfigService) {
-    this.from = this.config.get<string>("SMTP_FROM", "Clube da Esquerda <no-reply@clubedaesquerda.org>");
+    this.apiKey = this.config.get<string>("RESEND_API_KEY");
+    this.from = this.config.get<string>("MAIL_FROM", "Clube da Esquerda <no-reply@clubedaesquerda.org>");
     this.webOrigin = this.config.get<string>("WEB_ORIGIN", "http://localhost:3000");
-
-    this.transporter = createTransport({
-      host: this.config.get<string>("SMTP_HOST", "localhost"),
-      port: this.config.get<number>("SMTP_PORT", 1025),
-      secure: this.config.get<string>("SMTP_SECURE", "false") === "true",
-      auth: this.config.get<string>("SMTP_USER")
-        ? { user: this.config.get<string>("SMTP_USER"), pass: this.config.get<string>("SMTP_PASS") }
-        : undefined,
-    });
   }
 
   async sendVerificationEmail(to: string, displayName: string, token: string) {
     const verifyUrl = `${this.webOrigin}/verificar-email?token=${encodeURIComponent(token)}`;
 
+    await this.send({
+      to,
+      subject: "Confirme seu e-mail — Clube da Esquerda",
+      text: `Olá, ${displayName}! Confirme seu e-mail acessando: ${verifyUrl} (o link expira em 24 horas).`,
+      html: `
+        <p>Olá, ${displayName}!</p>
+        <p>Confirme seu e-mail para ativar sua conta no Clube da Esquerda:</p>
+        <p><a href="${verifyUrl}">${verifyUrl}</a></p>
+        <p>Este link expira em 24 horas. Se você não fez este cadastro, ignore este e-mail.</p>
+      `,
+    });
+  }
+
+  private async send(msg: { to: string; subject: string; text: string; html: string }) {
+    if (!this.apiKey) {
+      // Sem chave configurada, não há como enviar — logamos e seguimos (o
+      // cadastro não pode depender disto). Útil em dev sem provedor.
+      this.logger.warn(`RESEND_API_KEY ausente — e-mail para ${msg.to} não enviado.`);
+      return;
+    }
+
     try {
-      await this.transporter.sendMail({
-        from: this.from,
-        to,
-        subject: "Confirme seu e-mail — Clube da Esquerda",
-        text: `Olá, ${displayName}! Confirme seu e-mail acessando: ${verifyUrl} (o link expira em 24 horas).`,
-        html: `
-          <p>Olá, ${displayName}!</p>
-          <p>Confirme seu e-mail para ativar sua conta no Clube da Esquerda:</p>
-          <p><a href="${verifyUrl}">${verifyUrl}</a></p>
-          <p>Este link expira em 24 horas. Se você não fez este cadastro, ignore este e-mail.</p>
-        `,
+      const res = await fetch(RESEND_ENDPOINT, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ from: this.from, to: msg.to, subject: msg.subject, text: msg.text, html: msg.html }),
       });
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        this.logger.error(`Resend respondeu ${res.status} ao enviar para ${msg.to}: ${body}`);
+      }
     } catch (err) {
-      // Falha de envio nunca deve derrubar o fluxo de cadastro, que já
-      // foi persistido com sucesso — apenas logamos para observabilidade
-      // e permitimos reenvio via endpoint dedicado.
-      this.logger.error(`Falha ao enviar e-mail de verificação para ${to}`, err as Error);
+      this.logger.error(`Falha ao enviar e-mail para ${msg.to}`, err as Error);
     }
   }
 }
