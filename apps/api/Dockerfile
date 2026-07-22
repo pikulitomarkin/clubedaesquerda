@@ -1,9 +1,13 @@
 # Build da API (NestJS) num monorepo pnpm.
 #
-# A imagem é construída no GitHub Actions e publicada no GHCR — a VPS só faz
-# `docker pull`. Motivo: a VPS tem 1 vCPU e 961 MB de RAM; compilar Nest +
-# Prisma lá levaria muitos minutos em swap, com risco real de OOM.
-FROM node:20-alpine AS base
+# Base Debian slim (não Alpine) DE PROPÓSITO: o engine do Prisma precisa de
+# openssl e da libc glibc; em Alpine (musl) ele falha com "failed to detect
+# libssl" tanto no `migrate deploy` quanto nas queries. slim + openssl faz o
+# target debian-openssl-3.0.x ser detectado e baixado no `prisma generate`.
+FROM node:20-slim AS base
+RUN apt-get update -qq \
+  && apt-get install -y -qq --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 WORKDIR /app
 
