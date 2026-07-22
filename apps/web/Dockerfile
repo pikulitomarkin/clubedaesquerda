@@ -25,6 +25,9 @@ ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+# @clube/shared compilado para JS antes do Next: seu `main` aponta para
+# dist/, então sem este build o Next importaria .ts de node_modules e falharia.
+RUN pnpm --filter @clube/shared build
 RUN pnpm --filter @clube/web build
 
 FROM base AS runtime

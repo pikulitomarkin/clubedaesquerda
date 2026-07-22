@@ -27,6 +27,11 @@ COPY --from=deps /app/packages/database/node_modules ./packages/database/node_mo
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY . .
 RUN pnpm --filter @clube/database exec prisma generate
+# Os pacotes do workspace são compilados para JS ANTES da API: seu `main`
+# aponta para dist/, e sem esse build o runtime cairia no .ts fonte
+# (SyntaxError). Ordem: shared → database → api.
+RUN pnpm --filter @clube/shared build
+RUN pnpm --filter @clube/database build
 RUN pnpm --filter @clube/api build
 
 # --- runtime: só o necessário para executar -----------------------------
@@ -37,10 +42,13 @@ ENV NODE_ENV=production
 # container inteiro numa máquina de 1 GB.
 ENV NODE_OPTIONS="--max-old-space-size=320"
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+# node_modules vêm do estágio BUILD (não deps): é lá que o `prisma generate`
+# escreveu o client gerado e que estão os pacotes buildados. Também inclui o
+# CLI do prisma (devDep), necessário para o `migrate deploy` do deploy.sh.
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=build /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=build /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/apps/api/package.json ./apps/api/
