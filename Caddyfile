@@ -1,0 +1,23 @@
+# Reverse proxy + TLS automático (Let's Encrypt).
+#
+# Os domínios e o e-mail do ACME vêm do ambiente (definidos em
+# /opt/clube/.env na VPS). O Caddy obtém e renova os certificados sozinho —
+# basta que os registros A de {$DOMAIN} e {$API_DOMAIN} apontem para o IP da
+# VPS e que as portas 80/443 estejam acessíveis (estão: IP público próprio).
+
+{
+	email {$ACME_EMAIL}
+}
+
+# Frontend (Next.js)
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy web:3000
+}
+
+# API (NestJS) — REST + WebSocket. O reverse_proxy do Caddy encaminha o
+# upgrade de WebSocket automaticamente, sem config extra.
+{$API_DOMAIN} {
+	encode gzip
+	reverse_proxy api:3333
+}

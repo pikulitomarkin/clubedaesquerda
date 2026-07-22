@@ -77,11 +77,14 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Enviar compose para a VPS
+      - name: Enviar compose + Caddyfile para a VPS
         run: |
           scp -i ~/.ssh/id_ed25519 -P ${{ secrets.VPS_PORT }} \
             docker-compose.prod.yml \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/clube/docker-compose.yml
+          scp -i ~/.ssh/id_ed25519 -P ${{ secrets.VPS_PORT }} \
+            Caddyfile \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/clube/Caddyfile
 
       - name: Aplicar migrations e subir a stack
         run: |

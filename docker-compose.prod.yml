@@ -1,12 +1,13 @@
-# Stack de produção da VPS (1 vCPU / 961 MB + 4 GB de swap).
+# Stack de produção da VPS (4 vCPU / 5.8 GB + 2 GB de swap, IP público próprio).
 #
 # As imagens NÃO são construídas aqui: o GitHub Actions builda e publica no
-# GHCR, e esta máquina só faz `pull`. Buildar Next.js localmente com 1 vCPU
-# levaria dezenas de minutos em swap, com risco de OOM.
+# GHCR, e esta máquina só faz `pull`. Manter o build fora da VPS deixa o
+# deploy rápido e reproduzível, e a VPS só executa.
 #
-# Os `mem_limit` são deliberados: sem eles, um pico do Next ou do Postgres
-# faz o OOM killer escolher a vítima — e ele costuma matar justamente o
-# processo maior (a API). Com limite por container, quem estoura é contido.
+# TLS é terminado pelo Caddy (Let's Encrypt automático) — a VPS tem IP
+# público na própria interface, então 80/443 chegam direto e não há Cloudflare
+# Tunnel no caminho. Aponte um registro A de ${DOMAIN} e ${API_DOMAIN} para o
+# IP da VPS.
 name: clube
 
 services:
@@ -19,16 +20,14 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
-    # Tuning para RAM baixa: o padrão do Postgres assume uma máquina bem
-    # maior e sozinho já reservaria mais do que temos.
+    # Tuning coerente com ~5.8 GB de RAM na máquina.
     command: >
       postgres
-      -c shared_buffers=96MB
-      -c effective_cache_size=256MB
-      -c work_mem=4MB
-      -c maintenance_work_mem=32MB
-      -c max_connections=40
-    mem_limit: 256m
+      -c shared_buffers=512MB
+      -c effective_cache_size=1536MB
+      -c work_mem=8MB
+      -c maintenance_work_mem=128MB
+      -c max_connections=80
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -41,8 +40,7 @@ services:
     restart: unless-stopped
     # Só é usado como pub/sub de WebSocket entre instâncias (contexto.md
     # §3.3) — não guarda estado durável, então pode descartar sob pressão.
-    command: redis-server --maxmemory 48mb --maxmemory-policy allkeys-lru --save ""
-    mem_limit: 64m
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --save ""
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -78,7 +76,6 @@ services:
     volumes:
       # Uploads precisam sobreviver à recriação do container.
       - uploads:/app/apps/api/uploads
-    mem_limit: 384m
     networks: [clube]
 
   web:
@@ -88,23 +85,33 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-    mem_limit: 256m
     networks: [clube]
 
-  # Túnel de saída da Cloudflare: a VPS está atrás de NAT com IP
-  # compartilhado e as portas 80/443 do IP público NÃO chegam nela. O túnel
-  # abre conexão de saída, dispensando forward de porta, e ainda termina TLS.
-  cloudflared:
-    image: cloudflare/cloudflared:latest
+  # Reverse proxy + TLS. Caddy emite e renova certificados Let's Encrypt
+  # sozinho a partir dos domínios do Caddyfile. É o ÚNICO serviço que publica
+  # portas no host — todo o resto fica só na rede interna `clube`.
+  caddy:
+    image: caddy:2-alpine
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on: [web, api]
-    mem_limit: 64m
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     networks: [clube]
 
 volumes:
   pgdata:
   uploads:
+  caddy_data:
+  caddy_config:
 
 networks:
   clube:
