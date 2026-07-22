@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
+import { WsAdapter } from "@nestjs/platform-ws";
 import { mkdirSync } from "node:fs";
 import type { ServerResponse } from "node:http";
 import { AppModule } from "./app.module";
@@ -15,6 +16,11 @@ async function bootstrap() {
   // primeiro boot). multer com destino em string não os cria sozinho.
   mkdirSync(PUBLIC_UPLOAD_DIR, { recursive: true });
   mkdirSync(EVIDENCE_UPLOAD_DIR, { recursive: true });
+
+  // O RealtimeGateway usa `ws` (não socket.io). Sem registrar o WsAdapter, o
+  // Nest tenta o driver socket.io padrão — que não está instalado — e falha
+  // no boot com "No driver (WebSockets) has been selected".
+  app.useWebSocketAdapter(new WsAdapter(app));
 
   app.use(cookieParser());
 
