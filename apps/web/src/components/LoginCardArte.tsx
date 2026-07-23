@@ -59,16 +59,16 @@ export function LoginCardArte({ onLogado }: { onLogado?: () => void }) {
           inputMode="numeric"
           aria-label="CPF"
           placeholder="000.000.000-00"
-          className="absolute border-none bg-transparent text-center font-body text-embroidery-black outline-none placeholder:text-embroidery-black/30"
-          style={{ ...CAMPOS.cpf, position: "absolute", fontSize: "3.4cqw" }}
+          className="absolute border-none bg-transparent text-center font-body font-semibold tracking-wide text-black outline-none placeholder:font-normal placeholder:text-black/40"
+          style={{ ...CAMPOS.cpf, position: "absolute", fontSize: "4.2cqw" }}
         />
 
         <input
           {...register("password")}
           type="password"
           aria-label="Senha"
-          className="absolute border-none bg-transparent text-center font-body text-embroidery-black outline-none"
-          style={{ ...CAMPOS.senha, position: "absolute", fontSize: "3.4cqw" }}
+          className="absolute border-none bg-transparent text-center font-body font-semibold tracking-widest text-black outline-none"
+          style={{ ...CAMPOS.senha, position: "absolute", fontSize: "4.2cqw" }}
         />
 
         {/* A palavra "Cadastre-se" já está bordada na arte; o link é só a
@@ -88,14 +88,16 @@ export function LoginCardArte({ onLogado }: { onLogado?: () => void }) {
       )}
 
       {/* A arte não tem botão de entrar — Enter no campo já envia, mas um
-          botão explícito evita que o usuário fique sem saber como seguir. */}
-      <div className="mt-4 flex flex-col items-center gap-2">
+          botão explícito evita que o usuário fique sem saber como seguir.
+          Fica logo abaixo do campo de senha, na mesma letra do "ENTRE NA
+          RODA" bordado (font-slab), em tamanho discreto. */}
+      <div className="mt-3 flex flex-col items-center gap-2">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="font-slab text-lg tracking-wide text-embroidery-black underline decoration-terracotta-600 decoration-4 underline-offset-8 disabled:opacity-60"
+          className="font-slab text-base tracking-wide text-black underline decoration-black/70 decoration-2 underline-offset-[6px] transition-opacity hover:opacity-70 disabled:opacity-50"
         >
-          {isSubmitting ? "Entrando..." : "ENTRAR"}
+          {isSubmitting ? "ENTRANDO..." : "ENTRAR"}
         </button>
         <Link
           href="/esqueci-senha"
