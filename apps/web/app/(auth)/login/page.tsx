@@ -30,7 +30,7 @@ export default function LoginPage() {
     try {
       const { accessToken, emailVerified } = await loginUser(data);
       setSession(accessToken, emailVerified);
-      router.push("/feed");
+      router.push("/");
     } catch (err) {
       setServerError(err instanceof ApiError ? err.message : "Não foi possível entrar");
     }

@@ -25,6 +25,7 @@ import { ReportsModule } from "./modules/reports/reports.module";
 import { UploadsModule } from "./modules/uploads/uploads.module";
 import { EmojisModule } from "./modules/emojis/emojis.module";
 import { GifsModule } from "./modules/gifs/gifs.module";
+import { SugestoesModule } from "./modules/sugestoes/sugestoes.module";
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { GifsModule } from "./modules/gifs/gifs.module";
     UploadsModule,
     EmojisModule,
     GifsModule,
+    SugestoesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

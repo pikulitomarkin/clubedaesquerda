@@ -73,7 +73,7 @@ export default function RodaPage() {
     setBusy("leave");
     try {
       await leaveRoda(roda.id, accessToken);
-      router.push("/feed");
+      router.push("/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Não foi possível sair da roda");
       setBusy(null);
@@ -86,7 +86,7 @@ export default function RodaPage() {
     setBusy("close");
     try {
       await closeRoda(roda.id, accessToken);
-      router.push("/feed");
+      router.push("/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Não foi possível fechar a roda");
       setBusy(null);

@@ -75,6 +75,8 @@ const config: Config = {
         // dando a leitura de que existe um piso.
         hop: "hop 1.9s cubic-bezier(0.5, 0, 0.5, 1) infinite",
         "hop-shadow": "hopShadow 1.9s cubic-bezier(0.5, 0, 0.5, 1) infinite",
+        // Marca da home: três voltas lentas ao carregar, e para.
+        "spin-3": "spin3 7s cubic-bezier(0.3, 0, 0.2, 1) 1 both",
       },
       keyframes: {
         buttonPress: {
@@ -91,6 +93,10 @@ const config: Config = {
         hopShadow: {
           "0%, 12%, 100%": { transform: "scaleX(1)", opacity: "0.30" },
           "50%": { transform: "scaleX(0.68)", opacity: "0.12" },
+        },
+        spin3: {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(1080deg)" }, // 3 voltas
         },
       },
       textDecorationLine: {

@@ -15,7 +15,7 @@ export default function ChatDeepLinkPage() {
 
   useEffect(() => {
     openChat({ id: chatId, title: "Chat" });
-    router.replace("/feed");
+    router.replace("/");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
 

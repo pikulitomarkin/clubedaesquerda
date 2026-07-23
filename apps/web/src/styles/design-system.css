@@ -20,7 +20,8 @@
 /* Acessibilidade: quem pede menos movimento não recebe o pulo do bastidor. */
 @media (prefers-reduced-motion: reduce) {
   .animate-hop,
-  .animate-hop-shadow {
+  .animate-hop-shadow,
+  .animate-spin-3 {
     animation: none !important;
   }
 }

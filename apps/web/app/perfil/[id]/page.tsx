@@ -85,7 +85,7 @@ export default function PerfilPage() {
     setActionError(null);
     try {
       await blockUser(id, accessToken);
-      router.push("/feed");
+      router.push("/");
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : "Não foi possível bloquear");
     } finally {

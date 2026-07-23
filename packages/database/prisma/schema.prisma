@@ -207,6 +207,7 @@ model User {
   refreshTokens          RefreshToken[]
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens     PasswordResetToken[]
+  sugestoes               Sugestao[]
   consents               UserConsent[]
   auditLogs               AuditLog[]      @relation("AuditActor")
 
@@ -281,6 +282,22 @@ model EmailVerificationToken {
 
   @@index([userId])
   @@map("email_verification_tokens")
+}
+
+// Caixa de sugestões da página inicial ("SUGIRA PRA NÓS"). Exige login —
+// a resposta é dada por e-mail, então precisamos saber de quem veio.
+model Sugestao {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sugiro    String   @db.VarChar(1000) // "Eu sugiro que..."
+  porque    String?  @db.VarChar(1000) // "Porque..."
+  respondidaEm DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("sugestoes")
 }
 
 // Recuperação de senha — mesmo padrão do EmailVerificationToken: só o hash

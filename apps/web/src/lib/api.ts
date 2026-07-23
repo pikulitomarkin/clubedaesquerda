@@ -61,6 +61,14 @@ export function refreshSession() {
   return request<{ accessToken: string }>("/auth/refresh", undefined, { method: "POST" });
 }
 
+// Caixa de sugestões da home ("SUGIRA PRA NÓS") — exige login.
+export function createSugestao(input: { sugiro: string; porque?: string }, token: string) {
+  return request<{ id: string; createdAt: string }>("/sugestoes", token, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
 export function forgotPassword(email: string) {
   return request<{ message: string }>("/auth/forgot-password", undefined, {
     method: "POST",
