@@ -140,6 +140,9 @@ export interface CatalogItem {
   name: string;
   color?: string | null;
   category?: string | null;
+  // Patch/ícone bordado do catálogo do cliente, servido pelo Next
+  // (/bandeiras/<slug>.png, /interesses/<slug>.png).
+  imageUrl?: string | null;
 }
 
 export function listBandeiras(token?: string) {

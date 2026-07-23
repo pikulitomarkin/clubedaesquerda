@@ -36,14 +36,26 @@ export function MultiSelectGrid({
               type="button"
               onClick={() => toggle(item.id)}
               disabled={!selected && selectedIds.length >= maxSelections}
-              className={`relative flex items-center justify-center text-center px-3 py-2 rounded-lg border-2 text-xs font-body transition-colors ${
+              className={`relative flex flex-col items-center justify-start gap-1.5 text-center px-2 py-3 rounded-lg border-2 text-xs font-body transition-colors ${
                 selected
                   ? "border-terracotta-500 bg-terracotta-50 text-terracotta-700"
                   : "border-linen-300 bg-white hover:border-linen-400 disabled:opacity-50"
               }`}
             >
               {selected && <span className="absolute top-1 right-1 text-terracotta-600">✓</span>}
-              {item.name}
+              {/* Arte bordada do catálogo do cliente. <img> puro (não
+                  next/image) porque são assets estáticos pequenos em
+                  /public e não precisam de otimização sob demanda. */}
+              {item.imageUrl && (
+                <img
+                  src={item.imageUrl}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  className="h-12 w-auto max-w-[80%] object-contain drop-shadow-sm"
+                />
+              )}
+              <span className="leading-tight">{item.name}</span>
             </button>
           );
         })}

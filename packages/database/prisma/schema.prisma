@@ -364,6 +364,9 @@ model Bandeira {
   name        String
   description String?
   color       String? @db.VarChar(7) // hex, ex. "#E4002B"
+  // Patch bordado da bandeira (arte do cliente, recortada de IMAGENS PROJETO).
+  // Caminho relativo servido pelo Next em /bandeiras/<slug>.png.
+  imageUrl    String?
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
 
@@ -392,6 +395,8 @@ model Interesse {
   slug     String @unique
   name     String
   category String? // ex.: "cultura", "esporte", "política"
+  // Ícone bordado do interesse, servido pelo Next em /interesses/<slug>.png.
+  imageUrl String?
   active   Boolean @default(true)
 
   profileInteresses ProfileInteresse[]

@@ -100,6 +100,9 @@ services:
       ACME_EMAIL: ${ACME_EMAIL}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # SPA do Assistente Workana, outra aplicação que compartilha este Caddy
+      # (ver blocos correspondentes no Caddyfile). Não remover.
+      - /var/www/workana-web:/srv/workana-web:ro
       - caddy_data:/data
       - caddy_config:/config
     networks: [clube]

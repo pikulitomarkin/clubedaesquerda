@@ -1,23 +1,77 @@
 # Reverse proxy + TLS automático (Let's Encrypt).
 #
-# Os domínios e o e-mail do ACME vêm do ambiente (definidos em
-# /opt/clube/.env na VPS). O Caddy obtém e renova os certificados sozinho —
-# basta que os registros A de {$DOMAIN} e {$API_DOMAIN} apontem para o IP da
-# VPS e que as portas 80/443 estejam acessíveis (estão: IP público próprio).
+# ⚠️ Este arquivo é a FONTE DE VERDADE: o deploy o copia para
+# /opt/clube/Caddyfile, sobrescrevendo o que estiver no servidor. Qualquer
+# host novo precisa ser adicionado AQUI — editar só no servidor faz a
+# configuração ser perdida no deploy seguinte.
+#
+# A VPS hospeda mais de um projeto; os blocos do Assistente Workana abaixo
+# são de outra aplicação que compartilha este Caddy e NÃO podem ser removidos.
 
 {
 	email {$ACME_EMAIL}
 }
 
-# Frontend (Next.js)
+# --- Clube da Esquerda ---------------------------------------------------
+# Domínios e e-mail do ACME vêm do ambiente (/opt/clube/.env). Basta que os
+# registros A apontem para a VPS e que 80/443 estejam acessíveis.
+
 {$DOMAIN} {
 	encode gzip
 	reverse_proxy web:3000
 }
 
-# API (NestJS) — REST + WebSocket. O reverse_proxy do Caddy encaminha o
-# upgrade de WebSocket automaticamente, sem config extra.
+# API (NestJS) — REST + WebSocket. O reverse_proxy encaminha o upgrade de
+# WebSocket automaticamente.
 {$API_DOMAIN} {
 	encode gzip
 	reverse_proxy api:3333
+}
+
+# --- Assistente de Propostas Workana ------------------------------------
+# Outra aplicação no mesmo host. O SPA é servido de /srv/workana-web (mount
+# de /var/www/workana-web, ver docker-compose.prod.yml) e o backend roda no
+# host, alcançado pelo gateway da bridge docker (172.18.0.1:3000).
+# Timeouts longos: as chamadas de geração de proposta passam de 60s.
+
+assistente.vintagedevstack.com.br {
+	handle /api/* {
+		reverse_proxy 172.18.0.1:3000 {
+			transport http {
+				response_header_timeout 180s
+				read_timeout 180s
+				write_timeout 180s
+			}
+		}
+	}
+
+	encode gzip zstd
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	handle {
+		root * /srv/workana-web
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+api.vintagedevstack.com.br {
+	encode gzip zstd
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	reverse_proxy 172.18.0.1:3000 {
+		transport http {
+			response_header_timeout 180s
+			read_timeout 180s
+			write_timeout 180s
+		}
+	}
 }
