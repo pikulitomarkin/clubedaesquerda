@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Gochi+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Gochi+Hand&family=Archivo+Black&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,6 +14,90 @@
   inset: 6px;
   border: 2px dashed rgba(58, 58, 58, 0.28);
   border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ── "Entre na Roda": container de login sobre tábuas de madeira ────────
+   Reproduz a referência do cliente (madeira + bordado). A textura é feita
+   em CSS (gradientes) e não com bitmap: escala em qualquer tamanho de tela
+   e não pesa no bundle. Se o arquivo original da arte for disponibilizado,
+   basta trocar `background-image` por ele. */
+.wood-panel {
+  background-color: #6f4d30;
+  background-image:
+    /* veio da madeira */
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.05) 0 2px,
+      rgba(255, 255, 255, 0.02) 2px 5px,
+      transparent 5px 11px
+    ),
+    /* tábuas horizontais, com a ranhura entre elas */
+      repeating-linear-gradient(
+        180deg,
+        #7d5838 0 74px,
+        #5f4128 74px 78px,
+        #86603d 78px 152px,
+        #5f4128 152px 156px
+      );
+  box-shadow:
+    inset 0 0 50px rgba(0, 0, 0, 0.4),
+    0 6px 18px rgba(26, 26, 26, 0.3);
+}
+
+/* Moldura pespontada clara, como o cadarço costurado da referência. */
+.stitched-frame {
+  position: relative;
+}
+.stitched-frame::after {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 3px dashed rgba(240, 230, 214, 0.7);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Relevo de linha bordada sobre a madeira. */
+.thread-text {
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Campo = linha de costura tracejada (sem caixa), como na arte. */
+.stitch-input {
+  background: transparent;
+  border: none;
+  border-bottom: 4px dashed #e08a48;
+  color: #f6efe2;
+  caret-color: #f6efe2;
+  padding: 0 4px 6px;
+  outline: none;
+  width: 100%;
+}
+.stitch-input::placeholder {
+  color: rgba(246, 239, 226, 0.45);
+}
+.stitch-input:focus {
+  border-bottom-color: #f5b692;
+}
+
+/* Etiqueta de tecido do "Cadastre-se". */
+.fabric-patch {
+  background: linear-gradient(180deg, #e8dcc6 0%, #dccdb2 100%);
+  border-radius: 6px;
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  position: relative;
+}
+.fabric-patch::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 2px dashed rgba(120, 90, 60, 0.55);
+  border-radius: 3px;
   pointer-events: none;
 }
 

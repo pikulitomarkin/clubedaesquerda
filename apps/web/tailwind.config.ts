@@ -45,6 +45,9 @@ const config: Config = {
         // aproximação mais próxima no Google Fonts — o arquivo da fonte
         // original não veio junto. Usada em títulos e rótulos de campo.
         marker: ["Gochi Hand", "Caveat", "cursive"],
+        // Título "Entre na Roda" da referência do cliente: letra pesada e
+        // compacta, bordada em linha preta sobre a madeira.
+        slab: ["Archivo Black", "system-ui", "sans-serif"],
         body: [
           "-apple-system",
           "BlinkMacSystemFont",

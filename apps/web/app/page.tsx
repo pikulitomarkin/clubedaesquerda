@@ -3,14 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, type LoginInput } from "@clube/shared";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
-import { FormField } from "@/components/FormField";
+import { EntreNaRodaCard } from "@/components/EntreNaRodaCard";
 import { SugestaoModal } from "@/components/SugestaoModal";
-import { ApiError, loginUser } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
 const MANIFESTO =
@@ -36,7 +32,7 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col items-center gap-6">
-            {accessToken ? <JaLogado /> : <AreaLogin />}
+            {accessToken ? <JaLogado /> : <EntreNaRodaCard />}
 
             <EmbroideryButton threadColor="black" onClick={() => setSugestaoAberta(true)}>
               Sugira pra nós
@@ -52,69 +48,6 @@ export default function HomePage() {
 
       {sugestaoAberta && <SugestaoModal onClose={() => setSugestaoAberta(false)} />}
     </main>
-  );
-}
-
-// Área de login/cadastro da home. Ao autenticar, o usuário permanece na
-// própria página inicial (agora no estado logado).
-function AreaLogin() {
-  const { setSession } = useAuth();
-  const [erro, setErro] = useState<string | null>(null);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
-
-  async function onSubmit(data: LoginInput) {
-    setErro(null);
-    try {
-      const { accessToken, emailVerified } = await loginUser(data);
-      setSession(accessToken, emailVerified);
-    } catch (err) {
-      setErro(err instanceof ApiError ? err.message : "Não foi possível entrar");
-    }
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="stitched flex w-full max-w-sm flex-col gap-4 rounded-xl bg-linen-100/90 p-8 shadow-embroidery-3d"
-      noValidate
-    >
-      <h2 className="mb-1 text-center font-marker text-3xl text-embroidery-black">Entre na roda</h2>
-
-      <FormField
-        label="CPF"
-        placeholder="000.000.000-00"
-        {...register("cpf")}
-        error={errors.cpf?.message}
-      />
-      <FormField
-        label="Senha"
-        type="password"
-        {...register("password")}
-        error={errors.password?.message}
-      />
-
-      {erro && <p className="text-sm text-red-700">{erro}</p>}
-
-      <EmbroideryButton type="submit" isLoading={isSubmitting}>
-        Entrar
-      </EmbroideryButton>
-
-      <p className="text-center font-body text-xs">
-        <Link href="/esqueci-senha" className="underline">
-          Esqueci minha senha
-        </Link>
-      </p>
-      <p className="text-center font-body text-xs">
-        Ainda não tem conta?{" "}
-        <Link href="/cadastro" className="font-handwritten text-base font-bold underline">
-          Cadastre-se
-        </Link>
-      </p>
-    </form>
   );
 }
 
