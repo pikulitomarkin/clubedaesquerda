@@ -11,6 +11,17 @@ import { ConfigService } from "@nestjs/config";
 // dedicado.
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
+// displayName é controlado pelo usuário; escapar antes de interpolar no HTML
+// do e-mail evita injeção de marcação no cliente de e-mail do destinatário.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
@@ -26,16 +37,52 @@ export class EmailService {
 
   async sendVerificationEmail(to: string, displayName: string, token: string) {
     const verifyUrl = `${this.webOrigin}/verificar-email?token=${encodeURIComponent(token)}`;
+    const nome = escapeHtml(displayName);
 
     await this.send({
       to,
       subject: "Confirme seu e-mail — Clube da Esquerda",
       text: `Olá, ${displayName}! Confirme seu e-mail acessando: ${verifyUrl} (o link expira em 24 horas).`,
       html: `
-        <p>Olá, ${displayName}!</p>
+        <p>Olá, ${nome}!</p>
         <p>Confirme seu e-mail para ativar sua conta no Clube da Esquerda:</p>
         <p><a href="${verifyUrl}">${verifyUrl}</a></p>
         <p>Este link expira em 24 horas. Se você não fez este cadastro, ignore este e-mail.</p>
+      `,
+    });
+  }
+
+  // Enviado quando a conta é ATIVADA (e-mail verificado), não no cadastro —
+  // evita dois e-mails simultâneos e só dá as boas-vindas a quem confirmou.
+  async sendWelcomeEmail(to: string, displayName: string) {
+    const nome = escapeHtml(displayName);
+
+    await this.send({
+      to,
+      subject: "Boas-vindas ao Clube da Esquerda!",
+      text: `Olá, ${displayName}! Sua conta está ativa. Boas-vindas ao Clube da Esquerda — entre em ${this.webOrigin} e comece a participar.`,
+      html: `
+        <p>Olá, ${nome}!</p>
+        <p>Sua conta foi confirmada e já está ativa. <strong>Boas-vindas ao Clube da Esquerda!</strong></p>
+        <p>Entre em <a href="${this.webOrigin}">${this.webOrigin}</a>, complete seu perfil e comece a participar das rodas de conversa.</p>
+        <p>Um abraço camarada. ✊</p>
+      `,
+    });
+  }
+
+  async sendPasswordResetEmail(to: string, displayName: string, token: string) {
+    const resetUrl = `${this.webOrigin}/redefinir-senha?token=${encodeURIComponent(token)}`;
+    const nome = escapeHtml(displayName);
+
+    await this.send({
+      to,
+      subject: "Recuperação de conta — Clube da Esquerda",
+      text: `Olá, ${displayName}! Recebemos um pedido para redefinir sua senha. Acesse ${resetUrl} (o link expira em 1 hora). Se não foi você, ignore este e-mail — sua senha continua a mesma.`,
+      html: `
+        <p>Olá, ${nome}!</p>
+        <p>Recebemos um pedido para redefinir a senha da sua conta no Clube da Esquerda.</p>
+        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>Este link expira em 1 hora e só pode ser usado uma vez. Se não foi você que pediu, ignore este e-mail — sua senha continua a mesma.</p>
       `,
     });
   }

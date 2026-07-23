@@ -5,6 +5,8 @@ import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { VerifyEmailDto } from "./dto/verify-email.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser, AuthenticatedUser } from "../common/decorators/current-user.decorator";
 
@@ -52,6 +54,27 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: 5 * 60_000 } })
   async resendVerification(@CurrentUser() user: AuthenticatedUser) {
     await this.authService.resendVerificationEmail(user.id);
+  }
+
+  // "Esqueci minha senha": dispara o e-mail de recuperação. Resposta SEMPRE
+  // 200 genérica (não revela se o e-mail existe). Throttle apertado por IP —
+  // é um gerador de e-mail, alvo típico de abuso.
+  @Post("forgot-password")
+  @HttpCode(200)
+  @Throttle({ default: { limit: 3, ttl: 15 * 60_000 } })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.authService.requestPasswordReset(dto.email);
+    return { message: "Se houver uma conta com este e-mail, enviamos as instruções de recuperação." };
+  }
+
+  // Redefine a senha a partir do token do e-mail. Consome o token, revoga
+  // todas as sessões ativas e zera o lockout.
+  @Post("reset-password")
+  @HttpCode(200)
+  @Throttle({ default: { limit: 5, ttl: 15 * 60_000 } })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.authService.resetPassword(dto.token, dto.password);
+    return { message: "Senha redefinida com sucesso. Faça login com a nova senha." };
   }
 
   @Post("refresh")

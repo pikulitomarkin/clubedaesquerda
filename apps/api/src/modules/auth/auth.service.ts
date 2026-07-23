@@ -22,6 +22,7 @@ const MAX_FAILED_ATTEMPTS = 5;
 // Ver docs/contexto.md §1.2.
 const LOCKOUT_BACKOFF_MINUTES = [1, 5, 15, 30, 60];
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60_000;
+const PASSWORD_RESET_TTL_MS = 60 * 60_000; // 1h — janela curta para reset
 
 // Versões vigentes dos documentos aceitos no cadastro. Qualquer mudança
 // material exige nova versão + re-consentimento (ver docs/contexto.md §2).
@@ -159,9 +160,12 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException("Link de verificação inválido ou expirado");
     }
 
-    await this.prisma.$transaction([
-      this.prisma.emailVerificationToken.update({
-        where: { id: stored.id },
+    // updateMany condicional no token: se dois cliques simultâneos no link
+    // chegarem juntos, só o primeiro casa (consumedAt NULL) — o segundo vê
+    // count 0 e não redispara boas-vindas.
+    const [consumed] = await this.prisma.$transaction([
+      this.prisma.emailVerificationToken.updateMany({
+        where: { id: stored.id, consumedAt: null },
         data: { consumedAt: new Date() },
       }),
       this.prisma.user.update({
@@ -169,12 +173,83 @@ export class AuthService implements OnModuleInit {
         data: { emailVerified: true, status: "ACTIVE" },
       }),
     ]);
+
+    if (consumed.count === 0) return;
+
+    // Boas-vindas só depois da ativação — disparado fora da transação, e
+    // falha de envio não desfaz a verificação (o EmailService só loga).
+    const user = await this.prisma.user.findUnique({
+      where: { id: stored.userId },
+      select: { email: true, profile: { select: { displayName: true } } },
+    });
+    if (user) await this.emailService.sendWelcomeEmail(user.email, user.profile?.displayName ?? "");
   }
 
   async resendVerificationEmail(userId: string) {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, include: { profile: true } });
     if (user.emailVerified) return;
     await this.issueEmailVerification(user.id, user.email, user.profile?.displayName ?? "");
+  }
+
+  // Ver docs/contexto.md § "Recuperação de senha". Resposta SEMPRE genérica
+  // (não revela se o e-mail existe — mesma política anti-enumeração do
+  // login). O e-mail só é enviado se a conta existir e estiver utilizável.
+  async requestPasswordReset(email: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { email, deletedAt: null },
+      select: { id: true, email: true, status: true, profile: { select: { displayName: true } } },
+    });
+
+    if (user && !BLOCKED_STATUSES.includes(user.status)) {
+      const tokenPlain = randomBytes(32).toString("hex");
+      const tokenHash = createHash("sha256").update(tokenPlain).digest("hex");
+
+      await this.prisma.passwordResetToken.create({
+        data: { userId: user.id, tokenHash, expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS) },
+      });
+
+      await this.emailService.sendPasswordResetEmail(user.email, user.profile?.displayName ?? "", tokenPlain);
+    }
+  }
+
+  async resetPassword(tokenPlain: string, newPassword: string) {
+    const tokenHash = createHash("sha256").update(tokenPlain).digest("hex");
+    const stored = await this.prisma.passwordResetToken.findUnique({ where: { tokenHash } });
+
+    if (!stored || stored.consumedAt || stored.expiresAt < new Date()) {
+      throw new BadRequestException("Link de recuperação inválido ou expirado");
+    }
+
+    const passwordHash = await argon2.hash(newPassword, { type: argon2.argon2id });
+
+    // Token consumido de forma condicional; se count 0 (uso concorrente),
+    // aborta sem trocar a senha nem revogar sessões.
+    const consumed = await this.prisma.passwordResetToken.updateMany({
+      where: { id: stored.id, consumedAt: null },
+      data: { consumedAt: new Date() },
+    });
+    if (consumed.count === 0) throw new BadRequestException("Link de recuperação inválido ou expirado");
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: stored.userId },
+        // Redefinir senha zera o lockout e reativa a conta se estava só
+        // pendente de verificação (quem recebeu o e-mail provou control do
+        // endereço). Contas SUSPENDED/BANNED não chegam aqui (ver request).
+        data: { passwordHash, failedLoginAttempts: 0, lockedUntil: null },
+      }),
+      // Segurança: uma redefinição de senha invalida TODAS as sessões
+      // ativas — se a conta foi comprometida, o atacante é deslogado.
+      this.prisma.refreshToken.updateMany({
+        where: { userId: stored.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+      // Invalida outros tokens de reset pendentes do mesmo usuário.
+      this.prisma.passwordResetToken.updateMany({
+        where: { userId: stored.userId, consumedAt: null },
+        data: { consumedAt: new Date() },
+      }),
+    ]);
   }
 
   // Ver docs/contexto.md §1.2 — lockout com backoff e mensagens genéricas.

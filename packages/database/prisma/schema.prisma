@@ -206,6 +206,7 @@ model User {
 
   refreshTokens          RefreshToken[]
   emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
   consents               UserConsent[]
   auditLogs               AuditLog[]      @relation("AuditActor")
 
@@ -280,6 +281,21 @@ model EmailVerificationToken {
 
   @@index([userId])
   @@map("email_verification_tokens")
+}
+
+// Recuperação de senha — mesmo padrão do EmailVerificationToken: só o hash
+// SHA-256 do token é persistido, uso único (consumedAt), validade curta.
+model PasswordResetToken {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+  consumedAt DateTime?
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model UserConsent {
