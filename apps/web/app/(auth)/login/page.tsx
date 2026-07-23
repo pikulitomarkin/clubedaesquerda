@@ -67,6 +67,12 @@ export default function LoginPage() {
         </EmbroideryButton>
 
         <p className="text-xs text-center font-body">
+          <Link href="/esqueci-senha" className="underline">
+            Esqueci minha senha
+          </Link>
+        </p>
+
+        <p className="text-xs text-center font-body">
           Ainda não tem conta?{" "}
           <Link href="/cadastro" className="font-semibold underline">
             Cadastre-se

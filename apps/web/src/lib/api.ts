@@ -61,6 +61,20 @@ export function refreshSession() {
   return request<{ accessToken: string }>("/auth/refresh", undefined, { method: "POST" });
 }
 
+export function forgotPassword(email: string) {
+  return request<{ message: string }>("/auth/forgot-password", undefined, {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(input: { token: string; password: string; confirmPassword: string }) {
+  return request<{ message: string }>("/auth/reset-password", undefined, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
 // --- Usuários / perfil ---
 
 export interface ViewerRelation {
