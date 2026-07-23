@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
-import { EntreNaRodaCard } from "@/components/EntreNaRodaCard";
+import { LoginCardArte } from "@/components/LoginCardArte";
 import { SugestaoModal } from "@/components/SugestaoModal";
 import { useAuth } from "@/lib/auth-context";
 
@@ -32,7 +32,7 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col items-center gap-6">
-            {accessToken ? <JaLogado /> : <EntreNaRodaCard />}
+            {accessToken ? <JaLogado /> : <LoginCardArte />}
 
             <EmbroideryButton threadColor="black" onClick={() => setSugestaoAberta(true)}>
               Sugira pra nós

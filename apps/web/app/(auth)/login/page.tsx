@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
-import { EntreNaRodaCard } from "@/components/EntreNaRodaCard";
+import { LoginCardArte } from "@/components/LoginCardArte";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function LoginPage() {
           />
         </div>
 
-        <EntreNaRodaCard onLogado={() => router.push("/")} />
+        <LoginCardArte onLogado={() => router.push("/")} />
       </div>
     </main>
   );
