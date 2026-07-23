@@ -113,15 +113,31 @@ export default function PerfilPage() {
 
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center gap-6 p-8">
-      {profile.profile?.photoUrl ? (
-        <img
-          src={profile.profile.photoUrl}
-          alt={profile.profile.displayName}
-          className="w-28 h-28 rounded-full object-cover shadow-embroidery-3d"
-        />
-      ) : (
-        <EmbroideryLogo size="sm" />
-      )}
+      {/* Galeria de até 3 fotos; perfis antigos têm só photoUrl. */}
+      {(() => {
+        const fotos = profile.profile?.photos?.length
+          ? profile.profile.photos
+          : profile.profile?.photoUrl
+            ? [profile.profile.photoUrl]
+            : [];
+
+        if (fotos.length === 0) return <EmbroideryLogo size="sm" />;
+
+        return (
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {fotos.map((url, i) => (
+              <img
+                key={url}
+                src={url}
+                alt={`${profile.profile?.displayName ?? "Perfil"} — foto ${i + 1}`}
+                className={`rounded-full object-cover shadow-embroidery-3d ${
+                  i === 0 ? "h-28 w-28" : "h-20 w-20"
+                }`}
+              />
+            ))}
+          </div>
+        );
+      })()}
 
       <section className="w-full max-w-md text-center p-6 bg-white/80 rounded-lg shadow-embroidery">
         <h1 className="font-heading text-3xl mb-1">{profile.profile?.displayName ?? "Perfil"}</h1>

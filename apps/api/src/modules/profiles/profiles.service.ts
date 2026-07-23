@@ -32,9 +32,14 @@ export class ProfilesService {
         data: {
           displayName: dto.displayName,
           bio: dto.bio,
-          photoUrl: dto.photoUrl,
           city: dto.city,
           state: dto.state,
+          // A galeria é a fonte de verdade; photoUrl (avatar) espelha a
+          // primeira foto. Assim feed, chat, eventos e homenagens — que já
+          // leem photoUrl — continuam funcionando sem alteração.
+          ...(dto.photos
+            ? { photos: dto.photos, photoUrl: dto.photos[0] ?? null }
+            : {}),
         },
       });
 

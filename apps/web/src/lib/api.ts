@@ -98,6 +98,7 @@ export interface UserProfile {
   profile: {
     displayName: string;
     bio: string | null;
+    photos?: string[] | null;
     photoUrl: string | null;
     city: string | null;
     state: string | null;
@@ -116,6 +117,8 @@ export interface MyProfile {
   userId: string;
   displayName: string;
   bio: string | null;
+  // Galeria de até 3 fotos; photoUrl é a principal (= photos[0]).
+  photos: string[];
   photoUrl: string | null;
   city: string | null;
   state: string | null;
@@ -131,7 +134,8 @@ export function updateMyProfile(
   dto: {
     displayName?: string;
     bio?: string;
-    photoUrl?: string;
+    // Enviar a galeria inteira; a API espelha a primeira em photoUrl.
+    photos?: string[];
     city?: string;
     state?: string;
     bandeiraIds?: string[];

@@ -354,9 +354,13 @@ model Profile {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   displayName String
-  bio         String?  @db.VarChar(1000)
+  bio         String?  @db.VarChar(600) // até 600 caracteres com espaço
   birthDate   DateTime @db.Date
   gender      Gender
+  // Galeria de até 3 fotos do perfil (limite garantido no DTO). photoUrl
+  // continua sendo a foto principal (= photos[0]) e é o que os outros
+  // módulos já leem para avatar em feed, chat, eventos e homenagens.
+  photos      String[] @default([])
   photoUrl    String?
   city        String?
   state       String? @db.VarChar(2)
