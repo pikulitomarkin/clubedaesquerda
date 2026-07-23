@@ -37,48 +37,60 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-linen-texture flex flex-col items-center justify-center gap-6 p-8">
-      <EmbroideryLogo size="sm" />
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm flex flex-col gap-4 p-8 bg-white/80 rounded-lg shadow-embroidery"
-        noValidate
-      >
-        <h1 className="font-heading text-3xl text-center mb-2">Entrar</h1>
+    <main className="min-h-screen bg-linen-texture flex items-center justify-center p-6 sm:p-8">
+      {/* Marca à esquerda e formulário à direita (empilha no mobile). */}
+      <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-14 lg:gap-20">
+        {/* O bastidor "pula"; a elipse abaixo encolhe/clareia em sincronia,
+            criando a leitura de chão. Ver keyframes hop/hopShadow. */}
+        <div className="flex shrink-0 flex-col items-center">
+          <EmbroideryLogo size="xl" className="animate-hop" />
+          <span
+            aria-hidden="true"
+            className="mt-3 h-3.5 w-52 rounded-[50%] bg-embroidery-black/30 blur-[4px] animate-hop-shadow"
+          />
+        </div>
 
-        <FormField
-          label="CPF"
-          placeholder="000.000.000-00"
-          {...register("cpf")}
-          error={errors.cpf?.message}
-        />
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="stitched w-full max-w-sm flex flex-col gap-4 p-8 bg-linen-100/90 rounded-xl shadow-embroidery-3d"
+          noValidate
+        >
+          <h1 className="font-marker text-4xl text-center text-embroidery-black mb-2">Entrar</h1>
 
-        <FormField
-          label="Senha"
-          type="password"
-          {...register("password")}
-          error={errors.password?.message}
-        />
+          <FormField
+            label="CPF"
+            placeholder="000.000.000-00"
+            {...register("cpf")}
+            error={errors.cpf?.message}
+          />
 
-        {serverError && <p className="text-sm text-red-700">{serverError}</p>}
+          <FormField
+            label="Senha"
+            type="password"
+            {...register("password")}
+            error={errors.password?.message}
+          />
 
-        <EmbroideryButton type="submit" isLoading={isSubmitting} className="mt-2">
-          Entrar
-        </EmbroideryButton>
+          {serverError && <p className="text-sm text-red-700">{serverError}</p>}
 
-        <p className="text-xs text-center font-body">
-          <Link href="/esqueci-senha" className="underline">
-            Esqueci minha senha
-          </Link>
-        </p>
+          <EmbroideryButton type="submit" isLoading={isSubmitting} className="mt-2">
+            Entrar
+          </EmbroideryButton>
 
-        <p className="text-xs text-center font-body">
-          Ainda não tem conta?{" "}
-          <Link href="/cadastro" className="font-semibold underline">
-            Cadastre-se
-          </Link>
-        </p>
-      </form>
+          <p className="text-xs text-center font-body">
+            <Link href="/esqueci-senha" className="underline">
+              Esqueci minha senha
+            </Link>
+          </p>
+
+          <p className="text-xs text-center font-body">
+            Ainda não tem conta?{" "}
+            <Link href="/cadastro" className="font-handwritten text-base font-bold underline">
+              Cadastre-se
+            </Link>
+          </p>
+        </form>
+      </div>
     </main>
   );
 }

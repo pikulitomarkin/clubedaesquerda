@@ -40,6 +40,11 @@ const config: Config = {
       fontFamily: {
         manuscript: ["Caveat", "cursive"],
         handwritten: ["Dancing Script", "cursive"],
+        // Referência do cliente: IMAGENS PROJETO/Fonte.png (alfabeto
+        // desenhado à mão, caixa alta, traço arredondado). "Gochi Hand" é a
+        // aproximação mais próxima no Google Fonts — o arquivo da fonte
+        // original não veio junto. Usada em títulos e rótulos de campo.
+        marker: ["Gochi Hand", "Caveat", "cursive"],
         body: [
           "-apple-system",
           "BlinkMacSystemFont",
@@ -65,12 +70,27 @@ const config: Config = {
       },
       animation: {
         "button-press": "buttonPress 0.15s ease-out",
+        // Bastidor "pulando" no chão: a subida é mais rápida que a queda
+        // (cubic-bezier), e a sombra abaixo encolhe/clareia em sincronia,
+        // dando a leitura de que existe um piso.
+        hop: "hop 1.9s cubic-bezier(0.5, 0, 0.5, 1) infinite",
+        "hop-shadow": "hopShadow 1.9s cubic-bezier(0.5, 0, 0.5, 1) infinite",
       },
       keyframes: {
         buttonPress: {
           "0%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(2px)" },
           "100%": { transform: "translateY(0)" },
+        },
+        hop: {
+          // pousa e "assenta" um instante antes do próximo pulo
+          "0%, 12%, 100%": { transform: "translateY(0) scaleY(1)" },
+          "6%": { transform: "translateY(0) scaleY(0.96)" },
+          "50%": { transform: "translateY(-22px) scaleY(1.02)" },
+        },
+        hopShadow: {
+          "0%, 12%, 100%": { transform: "scaleX(1)", opacity: "0.30" },
+          "50%": { transform: "scaleX(0.68)", opacity: "0.12" },
         },
       },
       textDecorationLine: {

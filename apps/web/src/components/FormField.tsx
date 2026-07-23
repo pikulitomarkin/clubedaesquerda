@@ -11,7 +11,12 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
 
     return (
       <div className="flex flex-col gap-1">
-        <label htmlFor={inputId} className="font-body text-xs font-semibold text-embroidery-dark">
+        {/* Rótulo em caixa alta, como no design do cliente (Login.jpg:
+            "CPF" / "SENHA" bordados acima de cada campo). */}
+        <label
+          htmlFor={inputId}
+          className="font-marker text-sm uppercase tracking-wide text-embroidery-dark"
+        >
           {label}
         </label>
         <input

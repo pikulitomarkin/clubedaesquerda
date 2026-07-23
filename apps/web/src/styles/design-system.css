@@ -1,7 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Gochi+Hand&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Costura tracejada — evoca o ponto de bordado das artes do cliente
+   (IMAGENS PROJETO/Login.jpg, onde campos e abas têm contorno pespontado). */
+.stitched {
+  position: relative;
+}
+.stitched::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 2px dashed rgba(58, 58, 58, 0.28);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Acessibilidade: quem pede menos movimento não recebe o pulo do bastidor. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-hop,
+  .animate-hop-shadow {
+    animation: none !important;
+  }
+}
 
 /* Reset and Base Styles */
 * {

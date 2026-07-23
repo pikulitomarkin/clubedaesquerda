@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface EmbroideryLogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
@@ -13,6 +13,8 @@ const sizeClasses = {
   sm: 'w-24 h-24',
   md: 'w-40 h-40',
   lg: 'w-56 h-56',
+  // Marca em destaque na tela de login (~+200px sobre o tamanho anterior).
+  xl: 'w-[21rem] h-[21rem]',
 };
 
 export const EmbroideryLogo: React.FC<EmbroideryLogoProps> = ({
