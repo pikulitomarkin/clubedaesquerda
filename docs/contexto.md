@@ -101,6 +101,32 @@ estado, CPF, senha e confirmação de senha. Fluxo:
    (ex.: organizar evento presencial, iniciar chat) podem exigir e-mail
    verificado — essa é uma decisão de produto a refinar por endpoint,
    não uma restrição imposta no login em si.
+7. **Boas-vindas** (`EmailService.sendWelcomeEmail`) são enviadas quando a
+   conta é ATIVADA (verificação concluída), não no cadastro — evita dois
+   e-mails simultâneos e só saúda quem confirmou. Disparo condicional: o
+   `updateMany` do token com `consumedAt = NULL` garante que dois cliques
+   no link não redisparem o e-mail.
+
+### 1.4.1 Recuperação de senha
+
+- `POST /auth/forgot-password` (e-mail) → responde **sempre** 200 genérico
+  ("se houver uma conta..."), nunca revelando se o e-mail existe (mesma
+  política anti-enumeração do login, §1.2). Só envia o e-mail se a conta
+  existir e não estiver `SUSPENDED`/`BANNED`/`DELETED`. Throttle apertado
+  (3 / 15 min por IP) — é um gerador de e-mail, alvo de abuso.
+- `PasswordResetToken`: mesmo padrão do `EmailVerificationToken` — só o
+  hash SHA-256 é persistido, uso único (`consumedAt`), TTL de 1h.
+- `POST /auth/reset-password` (token + nova senha + confirmação) consome o
+  token de forma condicional e, na mesma transação: grava o novo
+  `passwordHash` (Argon2id), **revoga todas as sessões ativas** (um reset
+  desloga um eventual invasor), zera o lockout e invalida outros tokens de
+  reset pendentes do usuário.
+- E-mail transacional via **API HTTP do Resend** (`EmailService`), não SMTP:
+  imune a bloqueio das portas SMTP de saída, comum em VPS. `displayName` é
+  escapado antes de entrar no HTML do e-mail (anti-injeção no cliente).
+- Frontend: os links apontam para `WEB_ORIGIN/verificar-email?token=…` e
+  `WEB_ORIGIN/redefinir-senha?token=…` — as páginas correspondentes no
+  Next consomem o token e chamam as rotas acima.
 
 ### 1.5 Autorização
 
