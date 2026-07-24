@@ -27,9 +27,13 @@ export class RodasService {
   // Botão "RODAS" do perfil — página inicial de descoberta de rodas.
   // INVITE_ONLY fica de fora do diretório: existir só é visível para quem
   // já foi convidado/é membro (mesma política de RodasService.findBySlug).
-  async listPublic(cursor?: string, take = 30) {
+  // MEMBERS_ONLY só entra na lista para viewer autenticado — visitante
+  // anônimo (rota é OptionalJwtAuthGuard) só vê PUBLIC, para não vazar a
+  // existência de rodas restritas a quem nem sequer tem conta.
+  async listPublic(viewerId: string | undefined, cursor?: string, take = 30) {
+    const visibleTo = viewerId ? (["PUBLIC", "MEMBERS_ONLY"] as const) : (["PUBLIC"] as const);
     return this.prisma.roda.findMany({
-      where: { visibility: { in: ["PUBLIC", "MEMBERS_ONLY"] }, archivedAt: null },
+      where: { visibility: { in: [...visibleTo] }, archivedAt: null },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),

@@ -13,9 +13,13 @@ export class RodasController {
   constructor(private readonly rodasService: RodasService) {}
 
   // Botão "RODAS" — página inicial de descoberta (diretório público).
+  // OptionalJwtAuthGuard: identifica o viewer quando houver token, para o
+  // service decidir se rodas MEMBERS_ONLY entram na lista (ver
+  // RodasService.listPublic) — sem isso, anônimo veria rodas restritas.
   @Get("rodas")
-  listPublic(@Query("cursor") cursor?: string) {
-    return this.rodasService.listPublic(cursor);
+  @UseGuards(OptionalJwtAuthGuard)
+  listPublic(@Query("cursor") cursor?: string, @CurrentUser() viewer?: AuthenticatedUser) {
+    return this.rodasService.listPublic(viewer?.id, cursor);
   }
 
   // Pública com auth opcional: identifica o viewer, quando houver, para
