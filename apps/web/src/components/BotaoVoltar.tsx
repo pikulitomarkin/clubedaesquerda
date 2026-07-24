@@ -19,7 +19,7 @@ export function BotaoVoltar({ href }: { href?: string }) {
       variant="secondary"
       threadColor="black"
       onClick={() => (href ? router.push(href) : router.back())}
-      className="fixed top-4 left-4 z-40"
+      className="fixed top-[30px] left-[30px] z-40"
     >
       ← Voltar
     </EmbroideryButton>
