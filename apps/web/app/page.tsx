@@ -41,7 +41,9 @@ export default function HomePage() {
         </div>
 
         {/* "Se jogue na Roda!" — centralizado, na fonte de texto. */}
-        <p className="max-w-3xl text-center font-body text-sm leading-relaxed text-embroidery-dark">
+        {/* Texto do rodapé em letra de mão (Dancing Script), como pedido —
+            maior que a fonte de corpo para a cursiva ficar legível. */}
+        <p className="max-w-3xl text-center font-handwritten text-xl leading-relaxed text-embroidery-dark sm:text-2xl">
           {RODA}
         </p>
       </div>
