@@ -96,11 +96,11 @@ function JaLogado() {
       {bandeiras.length > 0 && (
         <div className="flex flex-col items-center gap-1">
           <span className="font-body text-[10px] uppercase tracking-wide text-embroidery-gray">Bandeiras</span>
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
             {bandeiras.map((b) => (
-              <div key={b.slug} className="flex flex-col items-center gap-1 w-12">
+              <div key={b.slug} className="flex flex-col items-center gap-1 w-16">
                 {b.imageUrl && <img src={b.imageUrl} alt="" aria-hidden className="h-8 w-auto object-contain" />}
-                <span className="font-body text-[9px] text-center leading-tight">{b.name}</span>
+                <span className="font-body text-[9px] text-center leading-tight break-words">{b.name}</span>
               </div>
             ))}
           </div>
@@ -110,11 +110,11 @@ function JaLogado() {
       {interesses.length > 0 && (
         <div className="flex flex-col items-center gap-1">
           <span className="font-body text-[10px] uppercase tracking-wide text-embroidery-gray">Interesses</span>
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
             {interesses.map((i) => (
-              <div key={i.slug} className="flex flex-col items-center gap-1 w-12">
+              <div key={i.slug} className="flex flex-col items-center gap-1 w-16">
                 {i.imageUrl && <img src={i.imageUrl} alt="" aria-hidden className="h-8 w-auto object-contain" />}
-                <span className="font-body text-[9px] text-center leading-tight">{i.name}</span>
+                <span className="font-body text-[9px] text-center leading-tight break-words">{i.name}</span>
               </div>
             ))}
           </div>
