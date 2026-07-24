@@ -29,21 +29,22 @@ export function GifPicker({
 
   return (
     <div className="absolute bottom-full mb-2 w-72 max-h-80 overflow-y-auto p-3 bg-white rounded-lg shadow-embroidery-3d border border-linen-400 z-10">
-      <button onClick={onClose} className="text-xs float-right underline">
-        fechar
-      </button>
-
-      <form onSubmit={handleSearch} className="flex gap-2 mb-2">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar GIF..."
-          className="flex-1 rounded-md border border-linen-600 px-2 py-1 text-xs font-body"
-        />
-        <button type="submit" className="text-xs font-body underline">
-          Buscar
+      <div className="flex items-center gap-2 mb-2">
+        <form onSubmit={handleSearch} className="flex flex-1 gap-2 min-w-0">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar GIF..."
+            className="flex-1 min-w-0 rounded-md border border-linen-600 px-2 py-1 text-xs font-body"
+          />
+          <button type="submit" className="text-xs font-body underline shrink-0">
+            Buscar
+          </button>
+        </form>
+        <button onClick={onClose} className="text-xs underline shrink-0">
+          fechar
         </button>
-      </form>
+      </div>
 
       {loading && <p className="text-xs font-body">Buscando...</p>}
 
