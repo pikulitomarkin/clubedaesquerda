@@ -1,8 +1,9 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { ulid } from "ulid";
 import { PrismaService } from "../common/prisma/prisma.service";
 import { BlocksService } from "../common/blocks/blocks.service";
 import { SendMessageDto } from "./dto/send-message.dto";
+import { CreateGroupChatDto } from "./dto/create-group-chat.dto";
 
 // Retenção pós-bloqueio — ver docs/contexto.md § "Retenção após
 // bloqueio". 48h após o bloqueio, o job de expurgo (ChatRetentionJob)
@@ -53,10 +54,11 @@ export class ChatsService {
     });
   }
 
-  // Inbox do usuário: até 2 podem estar "abertos" na UI ao mesmo tempo
-  // (ver docs/contexto.md § "Até 2 abas de chat"), mas essa é uma
-  // restrição só de client — a API lista todos os chats do usuário para
-  // que ele escolha quais abrir.
+  // Inbox do usuário ("Roda de Conversa"): lista tanto DIRECT (mostrada só
+  // pelo nome da outra pessoa) quanto GROUP — de comunidade (Roda) ou
+  // avulso (criado direto daqui). Até 2 podem estar "abertos" na UI ao
+  // mesmo tempo (ver docs/contexto.md § "Até 2 abas de chat"), mas essa é
+  // uma restrição só de client — a API lista todos para o usuário escolher.
   async listMyChats(userId: string) {
     const chats = await this.prisma.chat.findMany({
       where: { participants: { some: { userId } }, purgeAt: null },
@@ -74,11 +76,87 @@ export class ChatsService {
       .map((chat) => ({
         id: chat.id,
         type: chat.type,
-        roda: chat.roda,
+        // GROUP de comunidade usa nome/imagem da Roda; GROUP avulso usa os
+        // próprios name/imageUrl do Chat (ver migration "chat_grupo_avulso").
+        name: chat.roda?.name ?? chat.name,
+        imageUrl: chat.roda?.imageUrl ?? chat.imageUrl,
+        isCreator: chat.creatorId === userId,
         otherUser: chat.type === "DIRECT" ? (chat.participants[0]?.user ?? null) : null,
         lastMessage: chat.messages[0] ?? null,
       }))
       .sort((a, b) => (b.lastMessage?.createdAt.getTime() ?? 0) - (a.lastMessage?.createdAt.getTime() ?? 0));
+  }
+
+  // Botão "RODA DE CONVERSA" acima da lista — cria um grupo avulso (sem
+  // vínculo com uma Roda/comunidade). Pares bloqueados são excluídos em
+  // silêncio da lista de participantes (mesma política de silêncio do
+  // bloqueio em outros fluxos), não rejeitados com erro — evita confirmar
+  // ao criador que existe bloqueio com alguém específico.
+  async createGroupChat(creatorId: string, dto: CreateGroupChatDto) {
+    const candidates = [...new Set(dto.participantIds)].filter((id) => id !== creatorId);
+
+    const blockChecks = await Promise.all(
+      candidates.map(async (id) => ({ id, blocked: await this.blocks.isBlocked(creatorId, id) })),
+    );
+    const allowed = blockChecks.filter((c) => !c.blocked).map((c) => c.id);
+
+    if (allowed.length === 0) {
+      throw new BadRequestException("Selecione ao menos uma pessoa");
+    }
+
+    return this.prisma.chat.create({
+      data: {
+        type: "GROUP",
+        name: dto.name,
+        imageUrl: dto.imageUrl,
+        creatorId,
+        participants: { create: [creatorId, ...allowed].map((userId) => ({ userId })) },
+      },
+      include: { participants: true },
+    });
+  }
+
+  // Botão "SAIR" — qualquer membro, exceto o criador (que só pode
+  // "FECHAR RODA"). Só vale para grupo avulso: uma Roda de comunidade tem
+  // seu próprio fluxo de saída (RodasService.leave), que já lida com
+  // RodaMembro/participação em Mesas — este método aqui não se aplica a
+  // chats com rodaId preenchido.
+  async leaveGroupChat(userId: string, chatId: string) {
+    const chat = await this.prisma.chat.findUnique({ where: { id: chatId } });
+    if (!chat || chat.type !== "GROUP" || chat.rodaId) {
+      throw new NotFoundException("Roda de conversa não encontrada");
+    }
+    if (chat.creatorId === userId) {
+      throw new ForbiddenException('Quem criou a roda de conversa não pode sair — use "Fechar roda"');
+    }
+
+    const removed = await this.prisma.chatParticipant.deleteMany({ where: { chatId, userId } });
+    if (removed.count === 0) throw new ForbiddenException("Você não participa desta roda de conversa");
+  }
+
+  // Botão "FECHAR RODA" — só o criador. Diferente do fechamento de Roda de
+  // comunidade (que arquiva com retenção de 48h para moderação, ver
+  // RodasService.close), aqui o spec do cliente pede descarte imediato:
+  // "o chat desaparece para todos e seus dados são descartados". Delete
+  // direto, cascata apaga ChatParticipant/Message (e Reaction nas
+  // mensagens). Retorna os participantes ANTES de apagar, para o
+  // controller notificar via realtime (fechar a aba de quem estiver com
+  // ela aberta) — mesmo padrão de RodasService.close.
+  async closeGroupChat(userId: string, chatId: string) {
+    const chat = await this.prisma.chat.findUnique({
+      where: { id: chatId },
+      include: { participants: true },
+    });
+    if (!chat || chat.type !== "GROUP" || chat.rodaId) {
+      throw new NotFoundException("Roda de conversa não encontrada");
+    }
+    if (chat.creatorId !== userId) {
+      throw new ForbiddenException("Só quem criou a roda de conversa pode fechá-la");
+    }
+
+    const participantIds = chat.participants.map((p) => p.userId);
+    await this.prisma.chat.delete({ where: { id: chatId } });
+    return { participantIds };
   }
 
   // Usado por Friendship ao adicionar (o Match cria seu próprio chat

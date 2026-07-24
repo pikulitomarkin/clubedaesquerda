@@ -3,7 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRealtime } from "@/lib/realtime-context";
-import { listChatMessages, listEmojis, type ChatMessage, type CustomEmoji, type GifResult } from "@/lib/api";
+import {
+  ApiError,
+  closeGroupChat,
+  leaveGroupChat,
+  listChatMessages,
+  listEmojis,
+  type ChatMessage,
+  type CustomEmoji,
+  type GifResult,
+} from "@/lib/api";
 import type { ChatMeta } from "@/lib/chat-dock-context";
 import { MessageContent } from "./MessageContent";
 import { EmojiPicker } from "./EmojiPicker";
@@ -16,6 +25,8 @@ export function ChatWindow({ meta, onClose }: { meta: ChatMeta; onClose: () => v
   const [emojis, setEmojis] = useState<CustomEmoji[]>([]);
   const [draft, setDraft] = useState("");
   const [pickerOpen, setPickerOpen] = useState<"emoji" | "gif" | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,14 +67,83 @@ export function ChatWindow({ meta, onClose }: { meta: ChatMeta; onClose: () => v
     setPickerOpen(null);
   }
 
+  // "SAIR" — qualquer membro, exceto o criador. Fecha a janela localmente;
+  // o servidor já removeu a participação.
+  async function handleSair() {
+    if (!accessToken) return;
+    if (!confirm("Sair desta roda de conversa?")) return;
+    try {
+      await leaveGroupChat(meta.id, accessToken);
+      onClose();
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Não foi possível sair da roda");
+    }
+  }
+
+  // "FECHAR RODA" — só o criador. O chat some para todos: o próprio
+  // criador fecha aqui, e os demais fecham ao receber o evento realtime
+  // "roda:closed" (assinado logo acima).
+  async function handleFecharRoda() {
+    if (!accessToken) return;
+    if (!confirm("Fechar esta roda de conversa? Ela desaparece para todos e os dados são descartados.")) return;
+    try {
+      await closeGroupChat(meta.id, accessToken);
+      onClose();
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Não foi possível fechar a roda");
+    }
+  }
+
   return (
     <div className="flex flex-col w-80 h-96 bg-linen-100 rounded-t-lg shadow-embroidery-3d overflow-hidden">
-      <header className="flex items-center justify-between px-3 py-2 bg-terracotta-500 text-white">
+      <header className="relative flex items-center justify-between px-3 py-2 bg-terracotta-500 text-white">
         <span className="font-embroidery text-sm truncate">{meta.title}</span>
-        <button onClick={onClose} aria-label="Fechar chat" className="text-lg leading-none">
-          ×
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Menu Sair/Fechar roda — só para roda de conversa avulsa. */}
+          {meta.isAdHocGroup && (
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Opções da roda"
+              className="text-lg leading-none"
+            >
+              ⋮
+            </button>
+          )}
+          <button onClick={onClose} aria-label="Fechar chat" className="text-lg leading-none">
+            ×
+          </button>
+        </div>
+
+        {menuOpen && meta.isAdHocGroup && (
+          <div className="absolute right-2 top-full mt-1 z-10 bg-white text-embroidery-black rounded-md shadow-embroidery-3d overflow-hidden">
+            {meta.isCreator ? (
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleFecharRoda();
+                }}
+                className="embroidery-thread-orange block w-full px-4 py-2 text-left text-xs font-embroidery whitespace-nowrap hover:bg-linen-100"
+              >
+                Fechar roda
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleSair();
+                }}
+                className="block w-full px-4 py-2 text-left text-xs font-embroidery whitespace-nowrap hover:bg-linen-100"
+              >
+                Sair
+              </button>
+            )}
+          </div>
+        )}
       </header>
+
+      {actionError && (
+        <p className="px-3 py-1 text-xs text-red-700 bg-red-50 border-b border-red-200">{actionError}</p>
+      )}
 
       <div className="flex-1 flex flex-col gap-2 overflow-y-auto p-2">
         {messages.map((m) => (

@@ -224,6 +224,7 @@ model User {
 
   chatParticipations ChatParticipant[]
   messagesSent       Message[]         @relation("MessageSender")
+  chatsCriados        Chat[]           @relation("ChatCreator")
 
   rodaMemberships RodaMembro[]
   mesaMemberships MesaParticipante[]
@@ -592,8 +593,19 @@ model Chat {
   id        String   @id @default(uuid())
   type      ChatType
   matchId   String?  @unique // presente quando type = DIRECT e origem é um Match
-  rodaId    String?  @unique // presente quando type = GROUP e chat pertence a uma Roda
+  rodaId    String?  @unique // presente quando type = GROUP e chat pertence a uma Roda (comunidade)
   createdAt DateTime @default(now())
+
+  // "Roda de Conversa" avulsa — grupo de chat criado direto da página de
+  // chat (não ligado a nenhuma Roda/comunidade). name/imageUrl são o nome
+  // e a imagem da aba, definidos na criação; creatorId é quem criou e é o
+  // único que pode fechar (ver ChatsService.closeGroupChat). SetNull em
+  // creatorId: se a conta de quem criou for excluída, o grupo sobrevive
+  // (órfão) em vez de cascatear — mesma lógica de Evento.organizerId.
+  name      String?
+  imageUrl  String?
+  creatorId String?
+  creator   User?    @relation("ChatCreator", fields: [creatorId], references: [id], onDelete: SetNull)
 
   // DECISÃO: preenchido quando um dos participantes de um chat DIRECT
   // bloqueia o outro — o histórico é retido por 48h (para eventual

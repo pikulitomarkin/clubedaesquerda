@@ -6,6 +6,11 @@ export interface ChatMeta {
   id: string;
   title: string;
   imageUrl?: string | null;
+  // Só relevante para "roda de conversa" avulsa (type "GROUP" sem Roda de
+  // comunidade por trás): decide se o ChatWindow mostra "Sair" ou
+  // "Fechar roda". Ausente/undefined para DIRECT e para GROUP de Roda.
+  isAdHocGroup?: boolean;
+  isCreator?: boolean;
 }
 
 interface ChatDockContextValue {

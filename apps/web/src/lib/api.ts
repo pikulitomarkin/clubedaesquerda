@@ -298,13 +298,40 @@ export function sendChatMessageRest(chatId: string, content: string, token: stri
 export interface ChatSummary {
   id: string;
   type: "DIRECT" | "GROUP";
-  roda: { id: string; name: string; imageUrl: string | null } | null;
+  // Nome/imagem já resolvidos pela API: para GROUP de Roda (comunidade) é
+  // o nome/imagem da Roda; para "roda de conversa" avulsa, os próprios do
+  // chat. DIRECT não usa este campo (ver otherUser).
+  name: string | null;
+  imageUrl: string | null;
+  isCreator: boolean;
   otherUser: { id: string; profile: { displayName: string; photoUrl: string | null } | null } | null;
   lastMessage: ChatMessage | null;
 }
 
 export function listMyChats(token: string) {
   return request<ChatSummary[]>("/chats", token);
+}
+
+// --- "Roda de Conversa" avulsa (botão acima da lista de chats) ---
+
+export function createGroupChat(
+  dto: { participantIds: string[]; name: string; imageUrl?: string },
+  token: string,
+) {
+  return request<{ id: string }>("/chats/grupo", token, {
+    method: "POST",
+    body: JSON.stringify(dto),
+  });
+}
+
+// Botão "SAIR" — qualquer membro, exceto o criador.
+export function leaveGroupChat(chatId: string, token: string) {
+  return request<void>(`/chats/${chatId}/sair`, token, { method: "POST" });
+}
+
+// Botão "FECHAR RODA" — só o criador; descarta o chat para todos.
+export function closeGroupChat(chatId: string, token: string) {
+  return request<void>(`/chats/${chatId}`, token, { method: "DELETE" });
 }
 
 // --- Emojis personalizados ---
