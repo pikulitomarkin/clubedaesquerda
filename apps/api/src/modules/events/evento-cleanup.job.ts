@@ -16,12 +16,10 @@ const EVENTO_CLEANUP_LOCK_KEY = 8_314_208;
 const BATCH_SIZE = 100;
 
 // Exclusão automática de eventos encerrados — ver docs/contexto.md
-// § "Eventos únicos vs. recorrentes/permanentes". Dois casos:
-//   - evento único (recurrenceFrequency NULL): vence pelo próprio fim;
-//   - evento recorrente COM recurrenceUntil já passado: a recorrência
-//     terminou, então ele também vence.
-// Recorrente sem `recurrenceUntil` é permanente e nunca é tocado aqui —
-// só o organizador (ou ADMIN/MODERATOR) o remove, via DELETE /eventos/:id.
+// § "Eventos únicos vs. recorrentes/permanentes". Só evento com
+// recurrenceMode "UNICO" (padrão) vence pelo próprio fim; "RECORRENTE" e
+// "PERMANENTE" nunca são tocados aqui — só o organizador (ou
+// ADMIN/MODERATOR) os remove, via DELETE /eventos/:id.
 //
 // O corte usa a MESMA janela de 1h (e a mesma noção de "fim efetivo" para
 // eventos sem endsAt) que EventsService.listForUser usa para decidir até
@@ -53,19 +51,11 @@ export class EventoCleanupJob {
 
       const expired = await this.prisma.evento.findMany({
         where: {
-          OR: [
-            // Eventos únicos: vencem pelo próprio fim (efetivo).
-            {
-              recurrenceFrequency: null,
-              OR: [{ endsAt: { lt: cutoff } }, { endsAt: null, startsAt: { lt: openEndedCutoff } }],
-            },
-            // Recorrentes cuja recorrência já terminou: continuavam para
-            // sempre porque o job só olhava recurrenceFrequency = NULL.
-            // Sem recurrenceUntil, seguem indefinidamente (é o esperado —
-            // "permanentes"); cabe ao organizador encerrar via
-            // DELETE /eventos/:id.
-            { recurrenceFrequency: { not: null }, recurrenceUntil: { lt: cutoff } },
-          ],
+          // Só evento "único" (recurrenceMode default) vence pelo próprio
+          // fim (efetivo) — recorrente e permanente nunca são tocados
+          // aqui, só o organizador os encerra via DELETE /eventos/:id.
+          recurrenceMode: "UNICO",
+          OR: [{ endsAt: { lt: cutoff } }, { endsAt: null, startsAt: { lt: openEndedCutoff } }],
         },
         take: BATCH_SIZE,
         select: { id: true },

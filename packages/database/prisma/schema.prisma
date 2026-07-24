@@ -152,10 +152,33 @@ enum ConfirmacaoStatus {
 // Regra de repetição definida pelo organizador — ver docs/contexto.md
 // § "Eventos únicos vs. recorrentes/permanentes". Evento.recurrenceFrequency
 // NULL = evento único (sujeito a exclusão automática, ver EventoCleanupJob).
+// DEPRECATED: mantido só para eventos já existentes criados antes de
+// Evento.recurrenceMode existir — novas criações usam recurrenceMode.
 enum RecurrenceFrequency {
   SEMANAL
   QUINZENAL
   MENSAL
+}
+
+// Estado explícito de repetição de Evento (página de Eventos — popups de
+// Clube e Análises): "único" é excluído após a data/horário
+// (EventoCleanupJob); "recorrente" e "permanente" nunca são excluídos
+// automaticamente — a diferença entre os dois é só informativa
+// (Evento.recurrenceText livre, escrito pelo organizador).
+enum RecurrenceMode {
+  UNICO
+  RECORRENTE
+  PERMANENTE
+}
+
+// Subtipo do popup "Clubes" da página de Eventos.
+enum ClubeTipo {
+  LIVRO
+  CINE
+  TEATRO
+  NOVELA
+  TEXTO
+  VIDEO
 }
 
 enum ConsentType {
@@ -806,18 +829,40 @@ model Reaction {
 
 model Evento {
   id          String       @id @default(uuid())
-  title       String
+  title       String // "nome do evento" (ou "nome do canal", para ANALISE)
   description String?      @db.Text
   tipo        EventoTipo
   status      EventoStatus @default(DRAFT)
 
-  // presencial
-  address String?
-  city    String?
-  state   String? @db.VarChar(2)
+  // Exibido junto ao link de perfil do organizerId — texto livre porque o
+  // organizador "de fato" (coletivo, canal) nem sempre é o nome de conta
+  // de quem publicou o evento.
+  organizerName String?
+  coverImageUrl String? // "imagem de capa"
 
-  // online
-  onlineUrl String?
+  // presencial
+  address      String? // "endereço do local"
+  city         String?
+  state        String? @db.VarChar(2)
+  locationName String? // "nome do local"
+  locationUrl  String? // "link da localização"
+
+  // online / clube / análise
+  onlineUrl String? // "link do evento" / "link da reunião" / "link da exibição"
+
+  // pago/gratuito — presencial, online e clube (análise não vende ingresso)
+  isFree    Boolean?
+  ticketUrl String? // "link para retirada ou compra do ingresso"
+
+  // clube
+  clubeTipo ClubeTipo?
+
+  // clube e análise
+  obraNome String? // "nome da obra"
+
+  // análise: não tem data fixa, só "dia da semana" + "horário" —
+  // Evento.startsAt é calculado (próxima ocorrência) a partir destes dois.
+  dayOfWeek Int? // 0 = domingo .. 6 = sábado
 
   rodaId     String?
   bandeiraId String?
@@ -833,13 +878,18 @@ model Evento {
   capacity       Int?
   confirmedCount Int      @default(0)
 
-  // DECISÃO: NULL = evento "único" (sujeito ao EventoCleanupJob — ver
-  // docs/contexto.md § "Eventos únicos vs. recorrentes/permanentes").
-  // Preenchido = evento "recorrente" (com recurrenceUntil definido) ou
-  // "permanente" (recurrenceUntil NULL, recorre indefinidamente) — em
-  // ambos os casos, o evento nunca é excluído automaticamente.
+  // DEPRECATED — ver RecurrenceMode. Mantidos só para eventos criados
+  // antes de recurrenceMode existir; novas criações não os preenchem.
   recurrenceFrequency RecurrenceFrequency?
   recurrenceUntil     DateTime?
+
+  // Único (padrão) é excluído automaticamente pelo EventoCleanupJob após a
+  // data/horário. Recorrente e permanente nunca são excluídos automaticamente
+  // — só o organizador (ou ADMIN/MODERATOR) os encerra via DELETE
+  // /eventos/:id. Só PRESENCIAL/ONLINE, o formulário nem oferece a opção
+  // (sempre UNICO); CLUBE e ANALISE deixam o organizador escolher.
+  recurrenceMode RecurrenceMode @default(UNICO)
+  recurrenceText String? // "quando ele se repete", livre — só quando não é UNICO
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

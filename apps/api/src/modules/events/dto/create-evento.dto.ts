@@ -1,80 +1,113 @@
 import {
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsInt,
   IsOptional,
   IsString,
-  IsUUID,
   IsUrl,
-  Length,
+  Matches,
+  Max,
   MaxLength,
   Min,
   ValidateIf,
 } from "class-validator";
-import { EventoTipo, RecurrenceFrequency } from "@clube/database";
+import { ClubeTipo, EventoTipo, RecurrenceMode } from "@clube/database";
 
+const TIPOS_COM_LINK = ["ONLINE", "CLUBE", "ANALISE"];
+const TIPOS_COM_DATA_FIXA = ["PRESENCIAL", "ONLINE", "CLUBE"];
+const TIPOS_PAGO_GRATUITO = ["PRESENCIAL", "ONLINE", "CLUBE"];
+const TIPOS_COM_RECORRENCIA = ["CLUBE", "ANALISE"];
+
+// Um único DTO para os 4 popups do spec (Presencial/Online/Clube/Análise):
+// os campos de cada tipo são todos opcionais aqui e só viram obrigatórios
+// via @ValidateIf(tipo), espelhando a regra de negócio de cada popup.
 export class CreateEventoDto {
+  @IsEnum(EventoTipo)
+  tipo!: EventoTipo;
+
+  // "nome do evento" (ou "nome do canal", para Análises)
   @IsString()
   @MaxLength(150)
   title!: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(5000)
+  @MaxLength(150)
+  organizerName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
   description?: string;
 
-  @IsEnum(EventoTipo)
-  tipo!: EventoTipo;
+  @IsOptional()
+  @IsUrl({ require_protocol: true })
+  coverImageUrl?: string;
 
-  // Obrigatório para PRESENCIAL.
+  // --- Presencial ---
+  @ValidateIf((dto: CreateEventoDto) => dto.tipo === "PRESENCIAL")
+  @IsString()
+  @MaxLength(150)
+  locationName?: string;
+
   @ValidateIf((dto: CreateEventoDto) => dto.tipo === "PRESENCIAL")
   @IsString()
   @MaxLength(300)
   address?: string;
 
   @IsOptional()
-  @IsString()
-  city?: string;
+  @IsUrl({ require_protocol: true })
+  locationUrl?: string;
 
-  @IsOptional()
-  @Length(2, 2)
-  state?: string;
-
-  // Obrigatório para ONLINE.
-  @ValidateIf((dto: CreateEventoDto) => dto.tipo === "ONLINE")
+  // --- Online / Clube / Análise ---
+  @ValidateIf((dto: CreateEventoDto) => TIPOS_COM_LINK.includes(dto.tipo))
   @IsUrl({ require_protocol: true })
   onlineUrl?: string;
 
-  @IsOptional()
-  @IsUUID()
-  rodaId?: string;
+  // --- Pago ou gratuito (Presencial/Online/Clube) ---
+  @ValidateIf((dto: CreateEventoDto) => TIPOS_PAGO_GRATUITO.includes(dto.tipo))
+  @IsBoolean()
+  isFree?: boolean;
 
   @IsOptional()
-  @IsUUID()
-  bandeiraId?: string;
+  @IsUrl({ require_protocol: true })
+  ticketUrl?: string;
 
+  // --- Clube ---
+  @ValidateIf((dto: CreateEventoDto) => dto.tipo === "CLUBE")
+  @IsEnum(ClubeTipo)
+  clubeTipo?: ClubeTipo;
+
+  // --- Clube e Análise ---
+  @ValidateIf((dto: CreateEventoDto) => dto.tipo === "CLUBE" || dto.tipo === "ANALISE")
+  @IsString()
+  @MaxLength(150)
+  obraNome?: string;
+
+  // --- Data/horário fixos (Presencial/Online/Clube) ---
+  @ValidateIf((dto: CreateEventoDto) => TIPOS_COM_DATA_FIXA.includes(dto.tipo))
   @IsDateString()
-  startsAt!: string;
+  startsAt?: string;
 
-  @IsOptional()
-  @IsDateString()
-  endsAt?: string;
-
-  @IsOptional()
+  // --- Dia da semana + horário (Análise, sem data fixa) ---
+  @ValidateIf((dto: CreateEventoDto) => dto.tipo === "ANALISE")
   @IsInt()
-  @Min(1)
-  capacity?: number;
+  @Min(0)
+  @Max(6)
+  dayOfWeek?: number;
 
-  // Regra de repetição definida pelo organizador — ausente/undefined =
-  // evento único (ver docs/contexto.md § "Eventos únicos vs.
-  // recorrentes/permanentes").
-  @IsOptional()
-  @IsEnum(RecurrenceFrequency)
-  recurrenceFrequency?: RecurrenceFrequency;
+  @ValidateIf((dto: CreateEventoDto) => dto.tipo === "ANALISE")
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+  time?: string;
 
-  // Só relevante se recurrenceFrequency estiver presente. Ausente =
-  // evento "permanente" (recorre sem data de término definida).
-  @IsOptional()
-  @IsDateString()
-  recurrenceUntil?: string;
+  // --- Recorrência (Clube e Análise) ---
+  @ValidateIf((dto: CreateEventoDto) => TIPOS_COM_RECORRENCIA.includes(dto.tipo))
+  @IsEnum(RecurrenceMode)
+  recurrenceMode?: RecurrenceMode;
+
+  @ValidateIf((dto: CreateEventoDto) => dto.recurrenceMode === "RECORRENTE" || dto.recurrenceMode === "PERMANENTE")
+  @IsString()
+  @MaxLength(200)
+  recurrenceText?: string;
 }

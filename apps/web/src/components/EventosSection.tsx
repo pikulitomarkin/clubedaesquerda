@@ -53,7 +53,7 @@ export function EventosSection({ profileUserId }: { profileUserId: string }) {
                 >
                   <p className="font-embroidery text-sm">
                     {TIPO_ICON[evento.tipo] ?? "🗓️"} {evento.title}
-                    {evento.recurrenceFrequency && " 🔁"}
+                    {evento.recurrenceMode !== "UNICO" && " 🔁"}
                   </p>
                   <p className="text-xs font-body text-embroidery-gray">
                     {start.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}

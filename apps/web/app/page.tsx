@@ -67,7 +67,7 @@ function JaLogado() {
       <BotaoPano href="/rodas/nova" size="sm">
         Criar uma roda
       </BotaoPano>
-      <BotaoPano href="/eventos/novo" size="sm">
+      <BotaoPano href="/eventos" size="sm">
         Criar um evento
       </BotaoPano>
       <BotaoPano href="/perfil/editar" size="sm">

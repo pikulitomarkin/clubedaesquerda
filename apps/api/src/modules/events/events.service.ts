@@ -1,11 +1,28 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
+import type { EventoTipo } from "@clube/database";
 import { PrismaService } from "../common/prisma/prisma.service";
 import { BlocksService } from "../common/blocks/blocks.service";
 import { RealtimeGateway } from "../realtime/realtime.gateway";
 import { CreateEventoDto } from "./dto/create-evento.dto";
 import { InviteDto } from "./dto/invite.dto";
 import { RespondConviteDto } from "./dto/respond-convite.dto";
+
+// Análises não têm data fixa: o organizador informa só "dia da semana" +
+// "horário" e o evento se refere sempre à PRÓXIMA ocorrência a partir de
+// agora. Evento.startsAt precisa de um valor (NOT NULL) para ordenar a
+// listagem, então calculamos aqui — o card em si não depende dessa data
+// para continuar visível (ver listUpcoming: recorrente/permanente sempre
+// aparece, independente de startsAt já ter passado).
+function nextOccurrence(dayOfWeek: number, time: string): Date {
+  const [hours, minutes] = time.split(":").map(Number);
+  const result = new Date();
+  result.setHours(hours!, minutes, 0, 0);
+  const diff = (dayOfWeek - result.getDay() + 7) % 7;
+  result.setDate(result.getDate() + diff);
+  if (result.getTime() < Date.now()) result.setDate(result.getDate() + 7);
+  return result;
+}
 
 // Janela de 1h compartilhada por DUAS regras que precisam bater exatamente
 // (ver docs/contexto.md § "Eventos únicos vs. recorrentes/permanentes"):
@@ -44,24 +61,34 @@ export class EventsService {
   ) {}
 
   async create(organizerId: string, dto: CreateEventoDto) {
+    // Só Clube e Análise oferecem a escolha único/recorrente/permanente no
+    // popup (ver spec) — Presencial e Online são sempre apagados após a
+    // data/horário, então nunca gravam algo diferente de UNICO aqui.
+    const recurrenceMode = dto.tipo === "CLUBE" || dto.tipo === "ANALISE" ? (dto.recurrenceMode ?? "UNICO") : "UNICO";
+
     return this.prisma.evento.create({
       data: {
         title: dto.title,
         description: dto.description,
         tipo: dto.tipo,
         status: "PUBLISHED",
+        organizerName: dto.organizerName,
+        coverImageUrl: dto.coverImageUrl,
+        locationName: dto.locationName,
         address: dto.address,
-        city: dto.city,
-        state: dto.state?.toUpperCase(),
+        locationUrl: dto.locationUrl,
         onlineUrl: dto.onlineUrl,
-        rodaId: dto.rodaId,
-        bandeiraId: dto.bandeiraId,
+        isFree: dto.isFree,
+        ticketUrl: dto.ticketUrl,
+        clubeTipo: dto.clubeTipo,
+        obraNome: dto.obraNome,
+        dayOfWeek: dto.tipo === "ANALISE" ? dto.dayOfWeek : undefined,
         organizerId,
-        startsAt: new Date(dto.startsAt),
-        endsAt: dto.endsAt ? new Date(dto.endsAt) : undefined,
-        capacity: dto.capacity,
-        recurrenceFrequency: dto.recurrenceFrequency,
-        recurrenceUntil: dto.recurrenceUntil ? new Date(dto.recurrenceUntil) : undefined,
+        // Análise: sem data fixa — calcula a próxima ocorrência a partir de
+        // dia da semana + horário. Demais tipos usam a data/horário informados.
+        startsAt: dto.tipo === "ANALISE" ? nextOccurrence(dto.dayOfWeek!, dto.time!) : new Date(dto.startsAt!),
+        recurrenceMode,
+        recurrenceText: recurrenceMode !== "UNICO" ? dto.recurrenceText : undefined,
       },
     });
   }
@@ -88,16 +115,25 @@ export class EventsService {
     return evento;
   }
 
-  // Botão "EVENTOS" do perfil — página inicial de descoberta: próximos
-  // eventos publicados, de qualquer organizador. DRAFT fica de fora
-  // (ainda não é público) e eventos já encerrados também (mesmo corte de
-  // "fim efetivo" usado no cleanup, para não listar o que já passou).
-  async listUpcoming(cursor?: string, take = 30) {
+  // Botão "EVENTOS" do perfil / página de Eventos — próximos eventos
+  // publicados, de qualquer organizador, com busca por nome e filtro por
+  // tipo. DRAFT fica de fora (ainda não é público). Um evento único já
+  // encerrado sai da lista (mesmo corte de "fim efetivo" do cleanup); um
+  // recorrente/permanente continua aparecendo mesmo com a última
+  // ocorrência conhecida (startsAt) no passado — é o organizador quem o
+  // remove, via DELETE /eventos/:id.
+  async listUpcoming(cursor?: string, take = 30, opts?: { q?: string; tipo?: EventoTipo }) {
     const now = new Date();
     return this.prisma.evento.findMany({
       where: {
         status: "PUBLISHED",
-        OR: [{ endsAt: { gte: now } }, { endsAt: null, startsAt: { gte: now } }],
+        ...(opts?.tipo ? { tipo: opts.tipo } : {}),
+        ...(opts?.q ? { title: { contains: opts.q, mode: "insensitive" as const } } : {}),
+        OR: [
+          { recurrenceMode: { not: "UNICO" } },
+          { endsAt: { gte: now } },
+          { endsAt: null, startsAt: { gte: now } },
+        ],
       },
       orderBy: [{ startsAt: "asc" }, { id: "asc" }],
       take,
@@ -109,7 +145,8 @@ export class EventsService {
         city: true,
         state: true,
         startsAt: true,
-        recurrenceFrequency: true,
+        coverImageUrl: true,
+        recurrenceMode: true,
         organizer: { select: { profile: { select: { displayName: true } } } },
       },
     });

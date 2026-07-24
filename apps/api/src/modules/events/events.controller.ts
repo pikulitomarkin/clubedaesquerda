@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
+import { EventoTipo } from "@clube/database";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CurrentUser, AuthenticatedUser } from "../common/decorators/current-user.decorator";
 import { EventsService } from "./events.service";
@@ -17,11 +18,15 @@ export class EventsController {
     return this.eventsService.create(user.id, dto);
   }
 
-  // Botão "EVENTOS" — página inicial de descoberta (próximos eventos
-  // publicados, de qualquer organizador).
+  // Botão "EVENTOS" / página de Eventos — próximos eventos publicados, de
+  // qualquer organizador. `q` é a busca por nome; `tipo` filtra por
+  // Evento presencial / Evento online / Clubes / Análises.
   @Get("eventos")
-  listUpcoming(@Query("cursor") cursor?: string) {
-    return this.eventsService.listUpcoming(cursor);
+  listUpcoming(@Query("cursor") cursor?: string, @Query("q") q?: string, @Query("tipo") tipo?: string) {
+    // `tipo` vem de query string livre — um valor fora do enum quebraria o
+    // Prisma com um erro cru (500). Fora do enum = sem filtro de tipo.
+    const tipoValido = tipo && tipo in EventoTipo ? (tipo as EventoTipo) : undefined;
+    return this.eventsService.listUpcoming(cursor, 30, { q, tipo: tipoValido });
   }
 
   @Get("eventos/:id")

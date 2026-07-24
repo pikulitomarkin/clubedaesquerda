@@ -400,34 +400,64 @@ export function closeRoda(rodaId: string, token: string) {
 // --- Eventos ---
 
 export const EVENTO_TIPOS = [
-  { value: "PRESENCIAL", label: "Presencial" },
-  { value: "ONLINE", label: "Online" },
-  { value: "CLUBE", label: "Clube (encontro fechado da roda)" },
-  { value: "ANALISE", label: "Roda de análise de conjuntura" },
+  { value: "PRESENCIAL", label: "Evento presencial" },
+  { value: "ONLINE", label: "Evento online" },
+  { value: "CLUBE", label: "Clubes" },
+  { value: "ANALISE", label: "Análises" },
 ] as const;
 
-export const RECURRENCE_OPTIONS = [
-  { value: "", label: "Único (não se repete)" },
-  { value: "SEMANAL", label: "Semanal" },
-  { value: "QUINZENAL", label: "Quinzenal" },
-  { value: "MENSAL", label: "Mensal" },
+export const CLUBE_TIPOS = [
+  { value: "LIVRO", label: "Livro" },
+  { value: "CINE", label: "Cine" },
+  { value: "TEATRO", label: "Teatro" },
+  { value: "NOVELA", label: "Novela" },
+  { value: "TEXTO", label: "Texto" },
+  { value: "VIDEO", label: "Vídeo" },
+] as const;
+
+export const RECURRENCE_MODES = [
+  { value: "UNICO", label: "Único" },
+  { value: "RECORRENTE", label: "Recorrente" },
+  { value: "PERMANENTE", label: "Permanente" },
+] as const;
+
+export const DIAS_SEMANA = [
+  { value: 0, label: "Domingo" },
+  { value: 1, label: "Segunda-feira" },
+  { value: 2, label: "Terça-feira" },
+  { value: 3, label: "Quarta-feira" },
+  { value: 4, label: "Quinta-feira" },
+  { value: 5, label: "Sexta-feira" },
+  { value: 6, label: "Sábado" },
 ] as const;
 
 export interface CreateEventoInput {
-  title: string;
-  description?: string;
   tipo: string;
+  title: string;
+  organizerName?: string;
+  description?: string;
+  coverImageUrl?: string;
+  // presencial
+  locationName?: string;
   address?: string;
-  city?: string;
-  state?: string;
+  locationUrl?: string;
+  // online / clube / análise
   onlineUrl?: string;
-  rodaId?: string;
-  bandeiraId?: string;
-  startsAt: string;
-  endsAt?: string;
-  capacity?: number;
-  recurrenceFrequency?: string;
-  recurrenceUntil?: string;
+  // pago ou gratuito (presencial/online/clube)
+  isFree?: boolean;
+  ticketUrl?: string;
+  // clube
+  clubeTipo?: string;
+  // clube e análise
+  obraNome?: string;
+  // data/horário fixos (presencial/online/clube)
+  startsAt?: string;
+  // análise (sem data fixa)
+  dayOfWeek?: number;
+  time?: string;
+  // recorrência (clube/análise)
+  recurrenceMode?: string;
+  recurrenceText?: string;
 }
 
 export interface EventoUser {
@@ -441,16 +471,25 @@ export interface Evento {
   description: string | null;
   tipo: string;
   status: string;
+  organizerName: string | null;
+  coverImageUrl: string | null;
   address: string | null;
   city: string | null;
   state: string | null;
+  locationName: string | null;
+  locationUrl: string | null;
   onlineUrl: string | null;
+  isFree: boolean | null;
+  ticketUrl: string | null;
+  clubeTipo: string | null;
+  obraNome: string | null;
+  dayOfWeek: number | null;
   startsAt: string;
   endsAt: string | null;
   capacity: number | null;
   confirmedCount: number;
-  recurrenceFrequency: string | null;
-  recurrenceUntil: string | null;
+  recurrenceMode: string;
+  recurrenceText: string | null;
   organizer: EventoUser;
   confirmacoes?: { userId: string; confirmedAt: string; user: EventoUser }[];
 }
@@ -467,7 +506,9 @@ export function listEventosForUser(userId: string, token: string) {
   return request<Evento[]>(`/users/${userId}/eventos`, token);
 }
 
-// Botão "EVENTOS" do perfil — próximos eventos publicados, para descobrir.
+// Botão "EVENTOS" do perfil / página de Eventos — próximos eventos
+// publicados, para descobrir. `q` é a busca por nome; `tipo` filtra por
+// Evento presencial / Evento online / Clubes / Análises.
 export interface EventoResumo {
   id: string;
   title: string;
@@ -475,13 +516,18 @@ export interface EventoResumo {
   city: string | null;
   state: string | null;
   startsAt: string;
-  recurrenceFrequency: string | null;
+  coverImageUrl: string | null;
+  recurrenceMode: string;
   organizer: { profile: { displayName: string } | null };
 }
 
-export function listEventosProximos(token: string, cursor?: string) {
-  const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
-  return request<EventoResumo[]>(`/eventos${qs}`, token);
+export function listEventosProximos(token: string, opts?: { q?: string; tipo?: string; cursor?: string }) {
+  const params = new URLSearchParams();
+  if (opts?.q) params.set("q", opts.q);
+  if (opts?.tipo) params.set("tipo", opts.tipo);
+  if (opts?.cursor) params.set("cursor", opts.cursor);
+  const qs = params.toString();
+  return request<EventoResumo[]>(`/eventos${qs ? `?${qs}` : ""}`, token);
 }
 
 export function confirmAttendance(eventoId: string, token: string) {
