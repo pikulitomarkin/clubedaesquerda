@@ -101,6 +101,26 @@
   pointer-events: none;
 }
 
+/* Retalho de pano liso, costurado sobre o bastidor — usado no botão
+   "ENTRAR" da tela de login. Simples de propósito: o cliente pediu um
+   pedaço de pano, sem estampa, com a palavra em preto. */
+.cloth-patch {
+  background: linear-gradient(180deg, #f0e8d8 0%, #e2d7c1 100%);
+  border-radius: 3px;
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  position: relative;
+}
+.cloth-patch::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1.5px dashed rgba(92, 70, 48, 0.6);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
 /* Acessibilidade: quem pede menos movimento não recebe o pulo do bastidor. */
 @media (prefers-reduced-motion: reduce) {
   .animate-hop,

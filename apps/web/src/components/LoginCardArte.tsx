@@ -20,7 +20,12 @@ import { useAuth } from "@/lib/auth-context";
 const CAMPOS = {
   cpf: { left: "29.8%", top: "45.3%", width: "40.6%", height: "6.0%" },
   senha: { left: "30.0%", top: "60.5%", width: "40.4%", height: "5.6%" },
-  cadastre: { left: "20%", top: "69%", width: "60%", height: "19%" },
+  // Retalho do "ENTRAR", logo acima da etiqueta "Cadastre-se" bordada. O
+  // vão livre entre o campo de senha (67,0%) e a etiqueta (70,4%) é de só
+  // 3,4%, então o retalho encosta na borda de cima da etiqueta — lido como
+  // pano costurado por cima, coerente com a colagem da arte.
+  entrar: { left: "35%", top: "67.4%", width: "30%", height: "6.2%" },
+  cadastre: { left: "20%", top: "74%", width: "60%", height: "15%" },
 } as const;
 
 export function LoginCardArte({ onLogado }: { onLogado?: () => void }) {
@@ -73,6 +78,16 @@ export function LoginCardArte({ onLogado }: { onLogado?: () => void }) {
           style={{ ...CAMPOS.senha, position: "absolute", fontSize: "4.2cqw" }}
         />
 
+        {/* "ENTRAR": retalho de pano liso costurado acima do "Cadastre-se". */}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="cloth-patch absolute flex items-center justify-center font-slab tracking-wide text-black transition-transform active:translate-y-[1px] disabled:opacity-70"
+          style={{ ...CAMPOS.entrar, position: "absolute", fontSize: "3.6cqw" }}
+        >
+          {isSubmitting ? "ENTRANDO..." : "ENTRAR"}
+        </button>
+
         {/* A palavra "Cadastre-se" já está bordada na arte; o link é só a
             área clicável por cima (texto acessível fica no aria-label). */}
         <Link
@@ -89,18 +104,9 @@ export function LoginCardArte({ onLogado }: { onLogado?: () => void }) {
         </p>
       )}
 
-      {/* A arte não tem botão de entrar — Enter no campo já envia, mas um
-          botão explícito evita que o usuário fique sem saber como seguir.
-          Fica logo abaixo do campo de senha, na mesma letra do "ENTRE NA
-          RODA" bordado (font-slab), em tamanho discreto. */}
-      <div className="mt-3 flex flex-col items-center gap-2">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="font-slab text-base tracking-wide text-black underline decoration-black/70 decoration-2 underline-offset-[6px] transition-opacity hover:opacity-70 disabled:opacity-50"
-        >
-          {isSubmitting ? "ENTRANDO..." : "ENTRAR"}
-        </button>
+      {/* O "ENTRAR" agora é o retalho de pano dentro do bastidor (acima do
+          "Cadastre-se"); aqui fica só o link de recuperação de senha. */}
+      <div className="mt-3 flex justify-center">
         <Link
           href="/esqueci-senha"
           className="font-body text-xs text-embroidery-dark underline underline-offset-4"
