@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { EmbroideryButton } from "@/components/EmbroideryButton";
+import { BotaoPano } from "@/components/BotaoPano";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { LoginCardArte } from "@/components/LoginCardArte";
 import { SugestaoModal } from "@/components/SugestaoModal";
@@ -36,9 +36,7 @@ export default function HomePage() {
           <div className="flex flex-col items-center gap-6">
             {accessToken ? <JaLogado /> : <LoginCardArte />}
 
-            <EmbroideryButton threadColor="black" onClick={() => setSugestaoAberta(true)}>
-              Sugira pra nós
-            </EmbroideryButton>
+            <BotaoPano onClick={() => setSugestaoAberta(true)}>Sugira pra nós</BotaoPano>
           </div>
         </div>
 
@@ -64,15 +62,15 @@ function JaLogado() {
       <h2 className="mb-1 text-center font-marker text-2xl text-embroidery-black">
         Você está na roda
       </h2>
-      <Link href="/rodas/nova" className="text-center font-body text-sm underline">
+      <BotaoPano href="/rodas/nova" size="sm">
         Criar uma roda
-      </Link>
-      <Link href="/eventos/novo" className="text-center font-body text-sm underline">
+      </BotaoPano>
+      <BotaoPano href="/eventos/novo" size="sm">
         Criar um evento
-      </Link>
-      <Link href="/perfil/editar" className="text-center font-body text-sm underline">
+      </BotaoPano>
+      <BotaoPano href="/perfil/editar" size="sm">
         Editar meu perfil
-      </Link>
+      </BotaoPano>
       <button
         type="button"
         onClick={() => {

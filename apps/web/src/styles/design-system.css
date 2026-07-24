@@ -121,6 +121,41 @@
   pointer-events: none;
 }
 
+/* Botão de tecido terracota, no estilo de IMAGENS PROJETO/Botões.png.
+   A textura é um recorte real do tecido daquela arte (sem o texto, que é
+   gravado nela), espelhado 2x2 para repetir sem emenda em qualquer
+   largura. O rótulo vai na letra cursiva da arte (font-handwritten). */
+.btn-pano {
+  background-image: url('/brand/botao-textura.png');
+  background-repeat: repeat;
+  background-size: 64px 64px;
+  color: #17130f;
+  border-radius: 4px;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  position: relative;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+.btn-pano::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 2px dashed rgba(45, 28, 18, 0.55);
+  border-radius: 3px;
+  pointer-events: none;
+}
+.btn-pano:hover {
+  filter: brightness(1.04);
+}
+.btn-pano:active {
+  transform: translateY(1px);
+}
+.btn-pano:disabled {
+  opacity: 0.65;
+  transform: none;
+}
+
 /* Acessibilidade: quem pede menos movimento não recebe o pulo do bastidor. */
 @media (prefers-reduced-motion: reduce) {
   .animate-hop,
