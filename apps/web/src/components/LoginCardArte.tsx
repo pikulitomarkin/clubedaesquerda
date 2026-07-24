@@ -15,9 +15,11 @@ import { useAuth } from "@/lib/auth-context";
 // tamanho de tela sem sair do lugar.
 //
 // As posições vêm da medição dos retângulos bordados no PNG (523x559).
+// Retângulos medidos no PNG (522x557), com uma folga para o texto ficar
+// dentro do pesponto e não encostar na borda bordada.
 const CAMPOS = {
-  cpf: { left: "29.7%", top: "45.4%", width: "40.6%", height: "5.9%" },
-  senha: { left: "29.9%", top: "60.5%", width: "40.4%", height: "5.6%" },
+  cpf: { left: "29.8%", top: "45.3%", width: "40.6%", height: "6.0%" },
+  senha: { left: "30.0%", top: "60.5%", width: "40.4%", height: "5.6%" },
   cadastre: { left: "20%", top: "69%", width: "60%", height: "19%" },
 } as const;
 

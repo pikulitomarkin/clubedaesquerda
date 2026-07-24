@@ -22,11 +22,12 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-linen-texture px-6 py-12 sm:px-8">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-12">
-        {/* Marca centralizada — três voltas lentas ao carregar (spin-3). */}
-        <EmbroideryLogo size="lg" className="animate-spin-3" />
+        {/* Marca centralizada (130px) — três voltas lentas ao carregar. */}
+        <EmbroideryLogo size="brand" className="animate-spin-3" />
 
-        {/* Manifesto à esquerda; login/cadastro + sugestão à direita. */}
-        <div className="grid w-full items-start gap-10 md:grid-cols-2 md:gap-14">
+        {/* Manifesto à esquerda; login/cadastro + sugestão à direita.
+            items-center alinha o texto ao centro do bastidor de login. */}
+        <div className="grid w-full items-center gap-10 md:grid-cols-2 md:gap-14">
           <p className="font-subheading text-xl font-bold leading-relaxed text-embroidery-black sm:text-2xl">
             {MANIFESTO}
           </p>

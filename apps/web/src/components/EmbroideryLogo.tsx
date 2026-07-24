@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface EmbroideryLogoProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'brand' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
@@ -11,6 +11,8 @@ interface EmbroideryLogoProps {
 // em CSS (.embroidery-frame + fonte manuscrita).
 const sizeClasses = {
   sm: 'w-24 h-24',
+  // Marca da página inicial: 130px, definido pelo cliente.
+  brand: 'w-[130px] h-[130px]',
   md: 'w-40 h-40',
   lg: 'w-56 h-56',
   // Marca em destaque na tela de login (~+200px sobre o tamanho anterior).
