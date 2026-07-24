@@ -20,11 +20,12 @@ export default function HomePage() {
   const [sugestaoAberta, setSugestaoAberta] = useState(false);
 
   return (
-    <main className="min-h-screen bg-linen-texture px-6 py-12 sm:px-8">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-12">
-        {/* Marca centralizada (130px) — três voltas lentas ao carregar. */}
-        <EmbroideryLogo size="brand" className="animate-spin-3" />
+    <main className="min-h-screen bg-linen-texture p-[30px]">
+      {/* Marca no canto superior esquerdo, a 30px da borda da página
+          (o padding do <main>) — três voltas lentas ao carregar. */}
+      <EmbroideryLogo size="brand" className="animate-spin-3" />
 
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-12 pt-8">
         {/* Manifesto à esquerda; login/cadastro + sugestão à direita.
             items-center alinha o texto ao centro do bastidor de login. */}
         <div className="grid w-full items-center gap-10 md:grid-cols-2 md:gap-14">
