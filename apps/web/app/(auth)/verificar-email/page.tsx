@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { BotaoVoltar } from "@/components/BotaoVoltar";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { ApiError, verifyEmail } from "@/lib/api";
@@ -57,6 +58,7 @@ function VerificarEmailContent() {
 export default function VerificarEmailPage() {
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center justify-center gap-6 p-8">
+      <BotaoVoltar />
       <EmbroideryLogo size="sm" />
       <Suspense fallback={<p className="font-body">Carregando...</p>}>
         <VerificarEmailContent />

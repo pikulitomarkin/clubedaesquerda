@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { BotaoVoltar } from "@/components/BotaoVoltar";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { FormTextarea } from "@/components/FormTextarea";
 import { PostCard } from "@/components/PostCard";
@@ -82,6 +83,7 @@ export default function MesaPage() {
   if (error) {
     return (
       <main className="min-h-screen bg-linen-texture flex items-center justify-center p-8">
+        <BotaoVoltar />
         <p className="font-body">{error}</p>
       </main>
     );
@@ -90,6 +92,7 @@ export default function MesaPage() {
   if (!mesa) {
     return (
       <main className="min-h-screen bg-linen-texture flex items-center justify-center p-8">
+        <BotaoVoltar />
         <p className="font-body">Carregando...</p>
       </main>
     );
@@ -97,6 +100,7 @@ export default function MesaPage() {
 
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center gap-6 p-8">
+      <BotaoVoltar />
       <section className="w-full max-w-md text-center p-6 bg-white/80 rounded-lg shadow-embroidery">
         {mesa.roda && (
           <Link href={`/rodas/${mesa.roda.slug}`} className="text-xs font-body underline text-embroidery-gray">

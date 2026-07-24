@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterInput } from "@clube/shared";
+import { BotaoVoltar } from "@/components/BotaoVoltar";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { FormField } from "@/components/FormField";
@@ -40,6 +41,7 @@ export default function CadastroPage() {
   if (success) {
     return (
       <main className="min-h-screen bg-linen-texture flex items-center justify-center p-8">
+        <BotaoVoltar />
         <div className="max-w-md text-center p-8 bg-white/80 rounded-lg shadow-embroidery">
           <h1 className="font-heading text-3xl mb-4">Quase lá!</h1>
           <p className="font-body">
@@ -53,6 +55,7 @@ export default function CadastroPage() {
 
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center justify-center gap-6 p-8">
+      <BotaoVoltar />
       <EmbroideryLogo size="sm" />
       <form
         onSubmit={handleSubmit(onSubmit)}

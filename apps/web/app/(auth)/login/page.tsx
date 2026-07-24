@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { BotaoVoltar } from "@/components/BotaoVoltar";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { LoginCardArte } from "@/components/LoginCardArte";
 
@@ -9,6 +10,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-linen-texture flex items-center justify-center p-6 sm:p-8">
+      <BotaoVoltar />
       {/* Marca à esquerda e container "Entre na Roda" à direita (empilha no
           mobile). O bastidor "pula": a elipse abaixo encolhe/clareia em
           sincronia, criando a leitura de chão — ver keyframes hop/hopShadow. */}

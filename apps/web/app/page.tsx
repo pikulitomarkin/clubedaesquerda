@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BotaoPano } from "@/components/BotaoPano";
+import Link from "next/link";
+import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { LoginCardArte } from "@/components/LoginCardArte";
+import { MinhasAtividadesSection } from "@/components/MinhasAtividadesSection";
 import { SugestaoModal } from "@/components/SugestaoModal";
 import { useAuth } from "@/lib/auth-context";
 
@@ -36,9 +37,11 @@ export default function HomePage() {
           <div className="flex flex-col items-center gap-6">
             {accessToken ? <JaLogado /> : <LoginCardArte />}
 
-            <BotaoPano onClick={() => setSugestaoAberta(true)}>Sugira pra nós</BotaoPano>
+            <EmbroideryButton onClick={() => setSugestaoAberta(true)}>Sugira pra nós</EmbroideryButton>
           </div>
         </div>
+
+        {accessToken && <MinhasAtividadesSection />}
 
         {/* "Se jogue na Roda!" — centralizado, na fonte de texto. */}
         {/* Texto do rodapé em letra de mão (Dancing Script), como pedido —
@@ -64,15 +67,21 @@ function JaLogado() {
       <h2 className="mb-1 text-center font-marker text-2xl text-embroidery-black">
         Você está na roda
       </h2>
-      <BotaoPano href="/rodas" size="sm">
-        Criar uma roda
-      </BotaoPano>
-      <BotaoPano href="/eventos" size="sm">
-        Criar um evento
-      </BotaoPano>
-      <BotaoPano href="/perfil/editar" size="sm">
-        Editar meu perfil
-      </BotaoPano>
+      <Link href="/rodas">
+        <EmbroideryButton size="sm" className="w-full">
+          Criar uma roda
+        </EmbroideryButton>
+      </Link>
+      <Link href="/eventos">
+        <EmbroideryButton size="sm" className="w-full">
+          Criar um evento
+        </EmbroideryButton>
+      </Link>
+      <Link href="/perfil/editar">
+        <EmbroideryButton size="sm" className="w-full">
+          Editar meu perfil
+        </EmbroideryButton>
+      </Link>
       <button
         type="button"
         onClick={() => {

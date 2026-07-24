@@ -481,6 +481,7 @@ export interface Evento {
   description: string | null;
   tipo: string;
   status: string;
+  organizerId: string;
   organizerName: string | null;
   coverImageUrl: string | null;
   address: string | null;

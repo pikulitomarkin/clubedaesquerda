@@ -1,5 +1,6 @@
 "use client";
 
+import { BotaoVoltar } from "@/components/BotaoVoltar";
 import { useAuth } from "@/lib/auth-context";
 
 export default function FeedPage() {
@@ -7,6 +8,7 @@ export default function FeedPage() {
 
   return (
     <main className="min-h-screen bg-linen-texture p-8">
+      <BotaoVoltar />
       <h1 className="font-heading text-4xl mb-4">Feed</h1>
       {!emailVerified && (
         <p className="font-body text-sm mb-4 bg-terracotta-100 border border-terracotta-400 rounded-md p-3">

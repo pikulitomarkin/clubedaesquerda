@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { BotaoVoltar } from "@/components/BotaoVoltar";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { MusicaRodaPlayer } from "@/components/MusicaRodaPlayer";
@@ -87,6 +88,7 @@ export default function RodaPage() {
   if (error) {
     return (
       <main className="min-h-screen bg-linen-texture flex items-center justify-center p-8">
+        <BotaoVoltar />
         <p className="font-body">{error}</p>
       </main>
     );
@@ -95,6 +97,7 @@ export default function RodaPage() {
   if (!roda) {
     return (
       <main className="min-h-screen bg-linen-texture flex items-center justify-center p-8">
+        <BotaoVoltar />
         <p className="font-body">Carregando...</p>
       </main>
     );
@@ -102,6 +105,7 @@ export default function RodaPage() {
 
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center gap-6 p-8">
+      <BotaoVoltar />
       <EmbroideryLogo size="sm" />
 
       {/* Em destaque: imagem de capa, nome, descrição */}

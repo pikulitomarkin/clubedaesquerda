@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "@clube/shared";
-import { BotaoPano } from "./BotaoPano";
+import { EmbroideryButton } from "./EmbroideryButton";
 import { FormField } from "./FormField";
 import { FormTextarea } from "./FormTextarea";
 import { ApiError, createSugestao, loginUser } from "@/lib/api";
@@ -41,7 +41,7 @@ export function SugestaoModal({ onClose }: { onClose: () => void }) {
               Obrigada por sua sugestão! Saiba que vamos ler e, oportunamente, respondê-la por
               email.
             </p>
-            <BotaoPano onClick={onClose}>Fechar</BotaoPano>
+            <EmbroideryButton onClick={onClose}>Fechar</EmbroideryButton>
           </div>
         )}
 
@@ -97,9 +97,9 @@ function EtapaLogin({
 
       {erro && <p className="text-sm text-red-700">{erro}</p>}
 
-      <BotaoPano type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Entrando..." : "Entrar"}
-      </BotaoPano>
+      <EmbroideryButton type="submit" disabled={isSubmitting} isLoading={isSubmitting}>
+        Entrar
+      </EmbroideryButton>
     </form>
   );
 }
@@ -148,9 +148,9 @@ function EtapaForm({ onEnviada }: { onEnviada: () => void }) {
 
       {erro && <p className="text-sm text-red-700">{erro}</p>}
 
-      <BotaoPano type="submit" disabled={enviando || sugiro.trim().length < 3}>
-        {enviando ? "Enviando..." : "Enviar sugestão"}
-      </BotaoPano>
+      <EmbroideryButton type="submit" disabled={enviando || sugiro.trim().length < 3} isLoading={enviando}>
+        Enviar sugestão
+      </EmbroideryButton>
     </form>
   );
 }

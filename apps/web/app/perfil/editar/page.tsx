@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BotaoVoltar } from "@/components/BotaoVoltar";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { FormField } from "@/components/FormField";
@@ -122,6 +123,7 @@ export default function EditarPerfilPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-linen-texture flex items-center justify-center p-8">
+        <BotaoVoltar />
         <p className="font-body">Carregando...</p>
       </main>
     );
@@ -129,6 +131,7 @@ export default function EditarPerfilPage() {
 
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center gap-6 p-8">
+      <BotaoVoltar />
       <EmbroideryLogo size="sm" />
 
       <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col gap-6">

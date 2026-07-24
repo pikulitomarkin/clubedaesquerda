@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { BotaoVoltar } from "@/components/BotaoVoltar";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { CriarRodaModal } from "@/components/CriarRodaModal";
@@ -30,6 +31,7 @@ export default function RodasIndexPage() {
 
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center gap-6 p-8">
+      <BotaoVoltar />
       <EmbroideryLogo size="sm" />
       <div className="flex items-center gap-4">
         <h1 className="font-heading text-3xl">Rodas</h1>
