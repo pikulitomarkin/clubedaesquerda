@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
@@ -9,6 +9,7 @@ import { LoginCardArte } from "@/components/LoginCardArte";
 import { MinhasAtividadesSection } from "@/components/MinhasAtividadesSection";
 import { SugestaoModal } from "@/components/SugestaoModal";
 import { useAuth } from "@/lib/auth-context";
+import { getUser, type UserProfile } from "@/lib/api";
 
 const MANIFESTO =
   "Somos uma plataforma de conexão entre pessoas que tem a sede da reflexão crítica, do debate político e da construção da justiça pelo afeto. Aqui, todo mundo é bem-vinde e o respeito é de lei!";
@@ -58,15 +59,68 @@ export default function HomePage() {
 
 // Estado logado: a home vira o ponto de partida para as áreas do app —
 // antes do login o usuário caía numa tela de feed vazia, sem navegação.
+// Mostra nome, foto principal, bandeiras e interesses do próprio usuário
+// (mesmos dados exibidos no perfil público, ver GET /users/:id).
 function JaLogado() {
-  const { clearSession } = useAuth();
+  const { clearSession, accessToken, userId } = useAuth();
   const router = useRouter();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    if (!accessToken || !userId) return;
+    getUser(userId, accessToken)
+      .then(setProfile)
+      .catch(() => setProfile(null));
+  }, [accessToken, userId]);
+
+  const displayName = profile?.profile?.displayName;
+  const photoUrl = profile?.profile?.photoUrl;
+  const bandeiras = profile?.profile?.bandeiras ?? [];
+  const interesses = profile?.profile?.interesses ?? [];
 
   return (
     <div className="stitched flex w-full max-w-sm flex-col gap-3 rounded-xl bg-linen-100/90 p-8 shadow-embroidery-3d">
-      <h2 className="mb-1 text-center font-marker text-2xl text-embroidery-black">
-        Você está na roda
-      </h2>
+      <div className="flex flex-col items-center gap-2 mb-1">
+        {photoUrl ? (
+          <img src={photoUrl} alt={displayName ?? "Você"} className="h-20 w-20 rounded-full object-cover shadow-embroidery-3d" />
+        ) : (
+          <div className="h-20 w-20 rounded-full bg-linen-300 flex items-center justify-center text-2xl font-embroidery">
+            {(displayName ?? "?").charAt(0).toUpperCase()}
+          </div>
+        )}
+        <h2 className="text-center font-marker text-2xl text-embroidery-black">
+          {displayName ? `Olá, ${displayName}!` : "Você está na roda"}
+        </h2>
+      </div>
+
+      {bandeiras.length > 0 && (
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-body text-[10px] uppercase tracking-wide text-embroidery-gray">Bandeiras</span>
+          <div className="flex flex-wrap justify-center gap-2">
+            {bandeiras.map((b) => (
+              <div key={b.slug} className="flex flex-col items-center gap-1 w-12">
+                {b.imageUrl && <img src={b.imageUrl} alt="" aria-hidden className="h-8 w-auto object-contain" />}
+                <span className="font-body text-[9px] text-center leading-tight">{b.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {interesses.length > 0 && (
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-body text-[10px] uppercase tracking-wide text-embroidery-gray">Interesses</span>
+          <div className="flex flex-wrap justify-center gap-2">
+            {interesses.map((i) => (
+              <div key={i.slug} className="flex flex-col items-center gap-1 w-12">
+                {i.imageUrl && <img src={i.imageUrl} alt="" aria-hidden className="h-8 w-auto object-contain" />}
+                <span className="font-body text-[9px] text-center leading-tight">{i.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <Link href="/rodas">
         <EmbroideryButton size="sm" className="w-full">
           Criar uma roda
