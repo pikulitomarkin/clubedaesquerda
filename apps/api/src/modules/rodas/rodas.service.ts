@@ -24,17 +24,23 @@ export class RodasService {
     private readonly realtime: RealtimeGateway,
   ) {}
 
-  // Botão "RODAS" do perfil — página inicial de descoberta de rodas.
-  // INVITE_ONLY fica de fora do diretório: existir só é visível para quem
-  // já foi convidado/é membro (mesma política de RodasService.findBySlug).
-  // MEMBERS_ONLY só entra na lista para viewer autenticado — visitante
-  // anônimo (rota é OptionalJwtAuthGuard) só vê PUBLIC, para não vazar a
-  // existência de rodas restritas a quem nem sequer tem conta.
-  async listPublic(viewerId: string | undefined, cursor?: string, take = 30) {
+  // Botão "RODAS" do perfil / página de Rodas — diretório público,
+  // ordenado por número de integrantes (maior primeiro, ver spec) e com
+  // busca por nome. INVITE_ONLY fica de fora do diretório: existir só é
+  // visível para quem já foi convidado/é membro (mesma política de
+  // RodasService.findBySlug). MEMBERS_ONLY só entra na lista para viewer
+  // autenticado — visitante anônimo (rota é OptionalJwtAuthGuard) só vê
+  // PUBLIC, para não vazar a existência de rodas restritas a quem nem
+  // sequer tem conta.
+  async listPublic(viewerId: string | undefined, cursor?: string, take = 30, q?: string) {
     const visibleTo = viewerId ? (["PUBLIC", "MEMBERS_ONLY"] as const) : (["PUBLIC"] as const);
     return this.prisma.roda.findMany({
-      where: { visibility: { in: [...visibleTo] }, archivedAt: null },
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      where: {
+        visibility: { in: [...visibleTo] },
+        archivedAt: null,
+        ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
+      },
+      orderBy: [{ membros: { _count: "desc" } }, { id: "desc" }],
       take,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       select: {
@@ -58,8 +64,9 @@ export class RodasService {
           slug: `${slugify(dto.name)}-${Date.now().toString(36)}`,
           description: dto.description,
           imageUrl: dto.imageUrl,
-          bandeiraId: dto.bandeiraId,
-          visibility: dto.visibility,
+          gifUrl: dto.gifUrl,
+          musicUrls: dto.musicUrls ?? [],
+          visibility: "PUBLIC",
           membros: { create: [{ userId: ownerId, role: "OWNER" }] },
         },
       });
@@ -210,7 +217,14 @@ export class RodasService {
       where: { slug, archivedAt: null },
       include: {
         bandeira: true,
-        membros: { where: { userId: { notIn: hidden } }, take: 20 },
+        membros: {
+          where: { userId: { notIn: hidden } },
+          take: 20,
+          orderBy: { joinedAt: "asc" },
+          include: { user: { select: { id: true, profile: { select: { displayName: true, photoUrl: true } } } } },
+        },
+        // Listagem de nomes das Mesas criadas pelos membros.
+        mesas: { orderBy: { createdAt: "desc" }, select: { id: true, name: true } },
         chat: { select: { id: true } },
       },
     });
@@ -229,6 +243,16 @@ export class RodasService {
       }
     }
 
-    return roda;
+    // "nome do organizador (com link direto para o perfil)" — sempre o
+    // OWNER, resolvido à parte para não depender do corte de 20 membros
+    // nem sumir quando o próprio owner está bloqueado com o viewer
+    // (ocultação mútua total: mesma regra aplicada à lista de membros).
+    const ownerMembro = await this.prisma.rodaMembro.findFirst({
+      where: { rodaId: roda.id, role: "OWNER" },
+      select: { userId: true, user: { select: { id: true, profile: { select: { displayName: true } } } } },
+    });
+    const organizer = ownerMembro && !hidden.includes(ownerMembro.userId) ? ownerMembro.user : null;
+
+    return { ...roda, organizer };
   }
 }

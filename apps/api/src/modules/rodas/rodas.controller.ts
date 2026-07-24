@@ -18,8 +18,8 @@ export class RodasController {
   // RodasService.listPublic) — sem isso, anônimo veria rodas restritas.
   @Get("rodas")
   @UseGuards(OptionalJwtAuthGuard)
-  listPublic(@Query("cursor") cursor?: string, @CurrentUser() viewer?: AuthenticatedUser) {
-    return this.rodasService.listPublic(viewer?.id, cursor);
+  listPublic(@Query("cursor") cursor?: string, @Query("q") q?: string, @CurrentUser() viewer?: AuthenticatedUser) {
+    return this.rodasService.listPublic(viewer?.id, cursor, 30, q);
   }
 
   // Pública com auth opcional: identifica o viewer, quando houver, para

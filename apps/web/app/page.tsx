@@ -64,7 +64,7 @@ function JaLogado() {
       <h2 className="mb-1 text-center font-marker text-2xl text-embroidery-black">
         Você está na roda
       </h2>
-      <BotaoPano href="/rodas/nova" size="sm">
+      <BotaoPano href="/rodas" size="sm">
         Criar uma roda
       </BotaoPano>
       <BotaoPano href="/eventos" size="sm">

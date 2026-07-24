@@ -480,6 +480,19 @@ body {
   color: #c99700; /* amarelo mostarda — EVENTOS */
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3), -1px -1px 0 rgba(0, 0, 0, 0.2);
 }
+.embroidery-thread-purpura {
+  color: #9b1b6f; /* púrpura — MONTAR MESA, PUBLICAR MESA, PUBLICAR POST */
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3), -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Botões de reação da Mesa (UAU!/FERA/EITA/NOPS/PERAÍ): "púrpura em
+   degradê" — texto com gradiente, não cor sólida como as demais linhas. */
+.reaction-thread-purpura {
+  background: linear-gradient(90deg, #9b1b6f, #5b2a86);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
 /* Focus States */
 .embroidery-button:focus {

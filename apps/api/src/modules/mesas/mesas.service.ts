@@ -34,7 +34,16 @@ export class MesasService {
       }
     }
 
-    return this.prisma.mesa.create({ data: dto });
+    return this.prisma.mesa.create({
+      data: {
+        name: dto.name,
+        description: dto.description,
+        rodaId: dto.rodaId,
+        eventoId: dto.eventoId,
+        capacity: dto.capacity,
+        creatorId: userId,
+      },
+    });
   }
 
   // 404 (não 403) para não confirmar a existência de uma roda que o
@@ -58,6 +67,7 @@ export class MesasService {
       include: {
         roda: { select: { id: true, name: true, slug: true } },
         evento: { select: { id: true, title: true } },
+        creator: { select: { id: true, profile: { select: { displayName: true } } } },
         _count: { select: { participantes: true } },
       },
     });

@@ -1,14 +1,13 @@
-import { IsEnum, IsOptional, IsString, IsUUID, IsUrl, MaxLength } from "class-validator";
-import { RodaVisibility } from "@clube/database";
+import { ArrayMaxSize, IsArray, IsOptional, IsString, IsUrl, MaxLength } from "class-validator";
 
 export class CreateRodaDto {
   @IsString()
-  @MaxLength(120)
+  @MaxLength(50)
   name!: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(2000)
+  @MaxLength(200)
   description?: string;
 
   // Enviada via POST /uploads antes da criação da roda.
@@ -16,10 +15,15 @@ export class CreateRodaDto {
   @IsUrl({ require_protocol: true })
   imageUrl?: string;
 
+  // "Giff da roda" — enviado via POST /uploads, em loop na página da Roda.
   @IsOptional()
-  @IsUUID()
-  bandeiraId?: string;
+  @IsUrl({ require_protocol: true })
+  gifUrl?: string;
 
-  @IsEnum(RodaVisibility)
-  visibility!: RodaVisibility;
+  // "Link de 3 músicas da roda".
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(3)
+  @IsUrl({ require_protocol: true }, { each: true })
+  musicUrls?: string[];
 }

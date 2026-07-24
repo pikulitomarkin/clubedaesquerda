@@ -10,7 +10,8 @@ export type ThreadColor =
   | 'guava'
   | 'orange'
   | 'purple'
-  | 'mustard';
+  | 'mustard'
+  | 'purpura';
 
 interface EmbroideryButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -32,6 +33,7 @@ const threadColorClasses: Record<ThreadColor, string> = {
   orange: 'embroidery-thread-orange',
   purple: 'embroidery-thread-purple',
   mustard: 'embroidery-thread-mustard',
+  purpura: 'embroidery-thread-purpura',
 };
 
 const sizeClasses = {

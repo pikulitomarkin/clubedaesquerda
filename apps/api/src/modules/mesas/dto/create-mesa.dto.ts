@@ -1,8 +1,14 @@
-import { IsInt, IsOptional, IsString, IsUUID, Min } from "class-validator";
+import { IsInt, IsOptional, IsString, IsUUID, MaxLength, Min } from "class-validator";
 
 export class CreateMesaDto {
   @IsString()
+  @MaxLength(30)
   name!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  description?: string;
 
   @IsOptional()
   @IsUUID()

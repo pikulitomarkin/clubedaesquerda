@@ -1,41 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
-import { BotaoPano } from "@/components/BotaoPano";
+import { EmbroideryButton } from "@/components/EmbroideryButton";
+import { CriarRodaModal } from "@/components/CriarRodaModal";
 import { useAuth } from "@/lib/auth-context";
 import { listRodasPublicas, type RodaPublica } from "@/lib/api";
 
-// Página inicial das Rodas — diretório público, destino do botão "RODAS"
-// no perfil. Rodas INVITE_ONLY não aparecem aqui (ver RodasService.listPublic).
+// Página inicial das Rodas — diretório público, ordenado por número de
+// integrantes (ver RodasService.listPublic). Rodas INVITE_ONLY não
+// aparecem aqui.
 export default function RodasIndexPage() {
+  const router = useRouter();
   const { accessToken } = useAuth();
   const [rodas, setRodas] = useState<RodaPublica[] | null>(null);
+  const [q, setQ] = useState("");
+  const [showCriar, setShowCriar] = useState(false);
 
-  useEffect(() => {
+  function refresh() {
     if (!accessToken) return;
-    listRodasPublicas(accessToken)
+    listRodasPublicas(accessToken, { q: q || undefined })
       .then(setRodas)
       .catch(() => setRodas([]));
-  }, [accessToken]);
+  }
+
+  useEffect(refresh, [accessToken, q]);
 
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center gap-6 p-8">
       <EmbroideryLogo size="sm" />
       <div className="flex items-center gap-4">
         <h1 className="font-heading text-3xl">Rodas</h1>
-        <BotaoPano href="/rodas/nova" size="sm">
+        <EmbroideryButton threadColor="purple" size="sm" onClick={() => setShowCriar(true)}>
           Criar roda
-        </BotaoPano>
+        </EmbroideryButton>
       </div>
+
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Buscar roda..."
+        className="w-full max-w-md rounded-md border border-linen-600 bg-white/80 px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-terracotta-400"
+      />
 
       <div className="w-full max-w-2xl grid grid-cols-2 sm:grid-cols-3 gap-4">
         {rodas === null && <p className="font-body text-sm col-span-full text-center">Carregando...</p>}
 
         {rodas?.length === 0 && (
           <p className="font-body text-sm col-span-full text-center text-embroidery-gray">
-            Nenhuma roda pública ainda. Que tal criar a primeira?
+            Nenhuma roda encontrada.
           </p>
         )}
 
@@ -59,6 +74,16 @@ export default function RodasIndexPage() {
           </Link>
         ))}
       </div>
+
+      {showCriar && (
+        <CriarRodaModal
+          onClose={() => setShowCriar(false)}
+          onCreated={(slug) => {
+            setShowCriar(false);
+            router.push(`/rodas/${slug}`);
+          }}
+        />
+      )}
     </main>
   );
 }

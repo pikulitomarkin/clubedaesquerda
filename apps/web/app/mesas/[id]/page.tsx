@@ -105,6 +105,15 @@ export default function MesaPage() {
         )}
         {mesa.evento && <p className="text-xs font-body text-embroidery-gray">{mesa.evento.title}</p>}
         <h1 className="font-heading text-3xl mt-1 mb-2">{mesa.name}</h1>
+        {mesa.description && <p className="font-body text-sm mb-2">{mesa.description}</p>}
+        {mesa.creator && (
+          <p className="text-xs font-body text-embroidery-gray mb-2">
+            organizada por{" "}
+            <Link href={`/perfil/${mesa.creator.id}`} className="underline">
+              {mesa.creator.profile?.displayName ?? "alguém"}
+            </Link>
+          </p>
+        )}
         <p className="text-xs font-body text-embroidery-gray mb-3">
           {mesa._count.participantes} participante{mesa._count.participantes !== 1 ? "s" : ""}
           {mesa.capacity ? ` de ${mesa.capacity}` : ""}
@@ -124,8 +133,8 @@ export default function MesaPage() {
             onChange={(e) => setDraft(e.target.value)}
           />
           {error && <p className="text-xs text-red-700">{error}</p>}
-          <EmbroideryButton type="submit" size="sm" isLoading={busy} disabled={!draft.trim()}>
-            Publicar
+          <EmbroideryButton type="submit" size="sm" threadColor="purpura" isLoading={busy} disabled={!draft.trim()}>
+            Publicar post
           </EmbroideryButton>
         </form>
 

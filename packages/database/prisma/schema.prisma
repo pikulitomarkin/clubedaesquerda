@@ -256,6 +256,7 @@ model User {
   reactions Reaction[]
 
   eventsOrganized Evento[]      @relation("EventoOrganizer")
+  mesasCriadas    Mesa[]        @relation("MesaCreator")
   convitesSent    Convite[]     @relation("ConviteInviter")
   convitesRecv    Convite[]     @relation("ConviteInvitee")
   confirmacoes    Confirmacao[]
@@ -700,6 +701,8 @@ model Roda {
   slug        String         @unique
   description String?        @db.VarChar(2000)
   imageUrl    String? // enviada via POST /uploads no momento da criação
+  gifUrl      String? // "Giff da roda" — enviado via POST /uploads, em loop na página da Roda
+  musicUrls   String[]       @default([]) // até 3 links de música da Roda
   tema        String?
   bandeiraId  String?
   visibility  RodaVisibility @default(PUBLIC)
@@ -735,15 +738,18 @@ model RodaMembro {
 // "Mesa" = sessão/subgrupo pontual dentro de uma Roda ou de um Evento
 // (ex.: mesa de debate em um encontro presencial, breakout de análise).
 model Mesa {
-  id        String   @id @default(uuid())
-  rodaId    String?
-  eventoId  String?
-  name      String
-  capacity  Int?
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  rodaId      String?
+  eventoId    String?
+  name        String
+  description String?  @db.VarChar(100)
+  capacity    Int?
+  creatorId   String? // "nome do organizador" da Mesa — nullable: mesas criadas antes deste campo existir
+  createdAt   DateTime @default(now())
 
-  roda   Roda?   @relation(fields: [rodaId], references: [id], onDelete: Cascade)
-  evento Evento? @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  roda    Roda?   @relation(fields: [rodaId], references: [id], onDelete: Cascade)
+  evento  Evento? @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  creator User?   @relation("MesaCreator", fields: [creatorId], references: [id], onDelete: SetNull)
 
   participantes MesaParticipante[]
   posts         Post[]

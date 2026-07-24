@@ -86,8 +86,8 @@ export function PostCard({ post, onChanged }: { post: Post; onChanged: (updated:
               disabled={busy === r.value || post.author.id === userId}
               className={`text-xs font-embroidery px-2 py-1 rounded-full border transition-colors ${
                 active
-                  ? "bg-terracotta-500 text-white border-terracotta-600"
-                  : "bg-linen-100 text-embroidery-dark border-linen-300 hover:border-terracotta-400"
+                  ? "bg-[#9b1b6f] text-white border-[#9b1b6f]"
+                  : "reaction-thread-purpura bg-linen-100 border-linen-300 hover:border-[#9b1b6f]"
               }`}
             >
               {r.label} {count > 0 && <span className="tabular-nums">{count}</span>}

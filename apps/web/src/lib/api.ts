@@ -361,19 +361,29 @@ export function searchGifs(query: string, token: string) {
 
 // --- Rodas de Conversa ---
 
+export interface RodaMembro {
+  userId: string;
+  role: string;
+  user: { id: string; profile: { displayName: string; photoUrl: string | null } | null };
+}
+
 export interface Roda {
   id: string;
   slug: string;
   name: string;
   description: string | null;
   imageUrl: string | null;
+  gifUrl: string | null;
+  musicUrls: string[];
   visibility: string;
-  membros: { userId: string; role: string }[];
+  membros: RodaMembro[];
+  mesas: { id: string; name: string }[];
+  organizer: { id: string; profile: { displayName: string } | null } | null;
   chat: { id: string } | null;
 }
 
 export function createRoda(
-  dto: { name: string; description?: string; imageUrl?: string; visibility: string },
+  dto: { name: string; description?: string; imageUrl?: string; gifUrl?: string; musicUrls?: string[] },
   token: string,
 ) {
   return request<Roda>("/rodas", token, { method: "POST", body: JSON.stringify(dto) });
@@ -595,9 +605,12 @@ export interface RodaPublica {
   _count: { membros: number };
 }
 
-export function listRodasPublicas(token: string, cursor?: string) {
-  const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
-  return request<RodaPublica[]>(`/rodas${qs}`, token);
+export function listRodasPublicas(token: string, opts?: { q?: string; cursor?: string }) {
+  const params = new URLSearchParams();
+  if (opts?.q) params.set("q", opts.q);
+  if (opts?.cursor) params.set("cursor", opts.cursor);
+  const qs = params.toString();
+  return request<RodaPublica[]>(`/rodas${qs ? `?${qs}` : ""}`, token);
 }
 
 // --- Mesas ---
@@ -605,9 +618,11 @@ export function listRodasPublicas(token: string, cursor?: string) {
 export interface Mesa {
   id: string;
   name: string;
+  description: string | null;
   capacity: number | null;
   roda: { id: string; name: string; slug: string } | null;
   evento: { id: string; title: string } | null;
+  creator: { id: string; profile: { displayName: string } | null } | null;
   _count: { participantes: number };
 }
 
@@ -616,7 +631,7 @@ export function getMesa(id: string, token: string) {
 }
 
 export function createMesa(
-  dto: { name: string; rodaId?: string; eventoId?: string; capacity?: number },
+  dto: { name: string; description?: string; rodaId?: string; eventoId?: string; capacity?: number },
   token: string,
 ) {
   return request<Mesa>("/mesas", token, { method: "POST", body: JSON.stringify(dto) });

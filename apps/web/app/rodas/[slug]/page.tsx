@@ -2,24 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
-import { FormTextarea } from "@/components/FormTextarea";
-import { PostCard } from "@/components/PostCard";
+import { MusicaRodaPlayer } from "@/components/MusicaRodaPlayer";
+import { MontarMesaModal } from "@/components/MontarMesaModal";
 import { useAuth } from "@/lib/auth-context";
 import { useChatDock } from "@/lib/chat-dock-context";
-import {
-  ApiError,
-  closeRoda,
-  createMesa,
-  createPost,
-  getRoda,
-  joinRoda,
-  leaveRoda,
-  listPostsByRoda,
-  type Post,
-  type Roda,
-} from "@/lib/api";
+import { ApiError, closeRoda, getRoda, joinRoda, leaveRoda, type Roda } from "@/lib/api";
 
 export default function RodaPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -28,18 +18,14 @@ export default function RodaPage() {
   const { openChat } = useChatDock();
 
   const [roda, setRoda] = useState<Roda | null>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
-  const [mesaName, setMesaName] = useState("");
+  const [showMontarMesa, setShowMontarMesa] = useState(false);
 
   async function refresh() {
     if (!accessToken) return;
     try {
-      const r = await getRoda(slug, accessToken);
-      setRoda(r);
-      setPosts(await listPostsByRoda(r.id, accessToken));
+      setRoda(await getRoda(slug, accessToken));
     } catch (err) {
       setError(err instanceof ApiError ? "Roda não encontrada" : "Erro ao carregar roda");
     }
@@ -69,11 +55,11 @@ export default function RodaPage() {
 
   async function handleLeave() {
     if (!accessToken || !roda) return;
-    if (!confirm("Sair desta roda de conversa?")) return;
+    if (!confirm("Sair desta roda?")) return;
     setBusy("leave");
     try {
       await leaveRoda(roda.id, accessToken);
-      router.push("/");
+      router.push("/rodas");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Não foi possível sair da roda");
       setBusy(null);
@@ -86,7 +72,7 @@ export default function RodaPage() {
     setBusy("close");
     try {
       await closeRoda(roda.id, accessToken);
-      router.push("/");
+      router.push("/rodas");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Não foi possível fechar a roda");
       setBusy(null);
@@ -96,38 +82,6 @@ export default function RodaPage() {
   function handleOpenChat() {
     if (!roda?.chat) return;
     openChat({ id: roda.chat.id, title: roda.name, imageUrl: roda.imageUrl });
-  }
-
-  async function handlePost(e: React.FormEvent) {
-    e.preventDefault();
-    if (!accessToken || !roda || !draft.trim()) return;
-    setBusy("post");
-    try {
-      await createPost({ content: draft.trim(), rodaId: roda.id, visibility: "MEMBERS_ONLY" }, accessToken);
-      setDraft("");
-      await refresh();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível publicar");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function handleCreateMesa(e: React.FormEvent) {
-    e.preventDefault();
-    if (!accessToken || !roda || !mesaName.trim()) return;
-    setBusy("mesa");
-    try {
-      const mesa = await createMesa({ name: mesaName.trim(), rodaId: roda.id }, accessToken);
-      router.push(`/mesas/${mesa.id}`);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível criar a mesa");
-      setBusy(null);
-    }
-  }
-
-  function handlePostChanged(updated: Post) {
-    setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
   }
 
   if (error) {
@@ -148,86 +102,133 @@ export default function RodaPage() {
 
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center gap-6 p-8">
-      {roda.imageUrl ? (
-        <img src={roda.imageUrl} alt={roda.name} className="w-32 h-32 rounded-full object-cover shadow-embroidery-3d" />
-      ) : (
-        <EmbroideryLogo size="sm" />
-      )}
+      <EmbroideryLogo size="sm" />
 
-      <section className="w-full max-w-md text-center p-6 bg-white/80 rounded-lg shadow-embroidery">
+      {/* Em destaque: imagem de capa, nome, descrição */}
+      <section className="w-full max-w-3xl text-center p-6 bg-white/80 rounded-lg shadow-embroidery">
+        {roda.imageUrl ? (
+          <img
+            src={roda.imageUrl}
+            alt={roda.name}
+            className="w-32 h-32 mx-auto rounded-full object-cover shadow-embroidery-3d mb-3"
+          />
+        ) : (
+          <div className="w-32 h-32 mx-auto rounded-full bg-linen-300 flex items-center justify-center text-4xl font-embroidery mb-3">
+            {roda.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <h1 className="font-heading text-3xl mb-1">{roda.name}</h1>
         {roda.description && <p className="font-body text-sm mb-4">{roda.description}</p>}
-        <p className="text-xs font-body text-embroidery-gray mb-4">
-          {roda.membros.length} {roda.membros.length === 1 ? "membro" : "membros"}
-        </p>
 
         <div className="flex flex-wrap justify-center gap-3">
           {!myMembership && (
-            <EmbroideryButton onClick={handleJoin} isLoading={busy === "join"}>
+            <EmbroideryButton threadColor="purple" onClick={handleJoin} isLoading={busy === "join"}>
               Entrar na roda
             </EmbroideryButton>
           )}
-
           {myMembership && (
             <EmbroideryButton onClick={handleOpenChat} threadColor="gold">
               Abrir chat
             </EmbroideryButton>
           )}
-
           {myMembership && !isOwner && (
             <EmbroideryButton variant="secondary" threadColor="black" onClick={handleLeave} isLoading={busy === "leave"}>
               Sair
             </EmbroideryButton>
           )}
-
           {isOwner && (
             <EmbroideryButton variant="secondary" threadColor="red" onClick={handleClose} isLoading={busy === "close"}>
               Fechar roda
             </EmbroideryButton>
           )}
         </div>
+
+        {error && <p className="text-xs text-red-700 mt-3">{error}</p>}
       </section>
 
-      {myMembership && (
-        <section className="w-full max-w-md flex flex-col gap-2 p-4 bg-white/70 rounded-lg shadow-embroidery">
-          <h2 className="font-heading text-xl mb-1">Criar uma mesa</h2>
-          <form onSubmit={handleCreateMesa} className="flex gap-2">
-            <input
-              value={mesaName}
-              onChange={(e) => setMesaName(e.target.value)}
-              placeholder="Nome da mesa"
-              className="flex-1 rounded-md border border-linen-600 px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-terracotta-400"
-            />
-            <EmbroideryButton type="submit" size="sm" isLoading={busy === "mesa"} disabled={!mesaName.trim()}>
-              Criar
-            </EmbroideryButton>
-          </form>
-        </section>
-      )}
+      <div className="w-full max-w-3xl flex flex-col md:flex-row gap-6">
+        {/* Lado esquerdo: descrição/organizador, montar mesa, mesas */}
+        <div className="flex-1 flex flex-col gap-4">
+          <section className="p-6 bg-white/80 rounded-lg shadow-embroidery flex flex-col gap-3">
+            {roda.description && <p className="font-body text-sm">{roda.description}</p>}
+            {roda.organizer && (
+              <p className="text-xs font-body text-embroidery-gray">
+                organizada por{" "}
+                <Link href={`/perfil/${roda.organizer.id}`} className="underline">
+                  {roda.organizer.profile?.displayName ?? "alguém"}
+                </Link>
+              </p>
+            )}
+          </section>
 
-      {myMembership && (
-        <section className="w-full max-w-md flex flex-col gap-4">
-          <form onSubmit={handlePost} className="flex flex-col gap-2 p-4 bg-white/70 rounded-lg shadow-embroidery">
-            <FormTextarea
-              label="Publicar na roda"
-              rows={3}
-              maxLength={5000}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-            />
-            <EmbroideryButton type="submit" size="sm" isLoading={busy === "post"} disabled={!draft.trim()}>
-              Publicar
-            </EmbroideryButton>
-          </form>
+          <section className="p-6 bg-white/80 rounded-lg shadow-embroidery flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h2 className="font-heading text-xl">Mesas</h2>
+              {myMembership && (
+                <EmbroideryButton threadColor="purpura" size="sm" onClick={() => setShowMontarMesa(true)}>
+                  Montar mesa
+                </EmbroideryButton>
+              )}
+            </div>
 
-          {posts.length === 0 && (
-            <p className="text-xs font-body text-embroidery-gray text-center">Nenhum post ainda.</p>
+            {roda.mesas.length === 0 && (
+              <p className="text-xs font-body text-embroidery-gray">Nenhuma mesa criada ainda.</p>
+            )}
+
+            <ul className="flex flex-col gap-1">
+              {roda.mesas.map((mesa) => (
+                <li key={mesa.id}>
+                  <Link href={`/mesas/${mesa.id}`} className="font-embroidery text-sm underline hover:text-terracotta-600">
+                    {mesa.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+
+        {/* Lado direito: música + giff, membros */}
+        <aside className="w-full md:w-72 shrink-0 flex flex-col gap-4">
+          {(roda.musicUrls.length > 0 || roda.gifUrl) && (
+            <section className="p-4 bg-white/80 rounded-lg shadow-embroidery flex flex-col gap-3 items-center">
+              {roda.musicUrls.length > 0 && <MusicaRodaPlayer urls={roda.musicUrls} />}
+              {roda.gifUrl && <img src={roda.gifUrl} alt="" className="w-full rounded-md object-cover" />}
+            </section>
           )}
 
-          {posts.map((post) => (
-            <PostCard key={post.id} post={post} onChanged={handlePostChanged} />
-          ))}
-        </section>
+          <section className="p-4 bg-white/80 rounded-lg shadow-embroidery">
+            <h2 className="font-heading text-lg mb-2">
+              Quem já entrou ({roda.membros.length})
+            </h2>
+            <ul className="flex flex-col gap-2 max-h-72 overflow-y-auto">
+              {roda.membros.map((m) => (
+                <li key={m.userId}>
+                  <Link href={`/perfil/${m.user.id}`} className="flex items-center gap-2 group">
+                    {m.user.profile?.photoUrl ? (
+                      <img src={m.user.profile.photoUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-linen-300" />
+                    )}
+                    <span className="text-sm font-body group-hover:underline">
+                      {m.user.profile?.displayName ?? "Alguém"}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </aside>
+      </div>
+
+      {showMontarMesa && (
+        <MontarMesaModal
+          rodaId={roda.id}
+          onClose={() => setShowMontarMesa(false)}
+          onCreated={(mesaId) => {
+            setShowMontarMesa(false);
+            router.push(`/mesas/${mesaId}`);
+          }}
+        />
       )}
     </main>
   );
