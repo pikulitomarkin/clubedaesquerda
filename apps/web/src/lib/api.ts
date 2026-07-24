@@ -91,6 +91,14 @@ export interface ViewerRelation {
   matchId: string | null;
 }
 
+// Bandeira/interesse exibidos no perfil (ícone + nome) — subconjunto do
+// CatalogItem (sem cor/categoria, que não fazem sentido aqui).
+export interface PerfilTag {
+  slug: string;
+  name: string;
+  imageUrl: string | null;
+}
+
 export interface UserProfile {
   id: string;
   status: string;
@@ -102,6 +110,8 @@ export interface UserProfile {
     photoUrl: string | null;
     city: string | null;
     state: string | null;
+    bandeiras: PerfilTag[];
+    interesses: PerfilTag[];
   } | null;
   viewer: ViewerRelation | null;
 }
@@ -188,6 +198,13 @@ export function blockUser(userId: string, token: string) {
     method: "POST",
     body: JSON.stringify({ userId }),
   });
+}
+
+// --- Chat direto (botão CONVERSAR) ---
+
+// Diferente de addFriend: não exige amizade, qualquer pessoa pode chamar.
+export function startChat(userId: string, token: string) {
+  return request<{ id: string }>(`/chats/${userId}/iniciar`, token, { method: "POST" });
 }
 
 // --- Homenagens ---
@@ -423,6 +440,23 @@ export function listEventosForUser(userId: string, token: string) {
   return request<Evento[]>(`/users/${userId}/eventos`, token);
 }
 
+// Botão "EVENTOS" do perfil — próximos eventos publicados, para descobrir.
+export interface EventoResumo {
+  id: string;
+  title: string;
+  tipo: string;
+  city: string | null;
+  state: string | null;
+  startsAt: string;
+  recurrenceFrequency: string | null;
+  organizer: { profile: { displayName: string } | null };
+}
+
+export function listEventosProximos(token: string, cursor?: string) {
+  const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  return request<EventoResumo[]>(`/eventos${qs}`, token);
+}
+
 export function confirmAttendance(eventoId: string, token: string) {
   return request<{ status: string; confirmacaoId: string }>(`/eventos/${eventoId}/confirmacoes`, token, {
     method: "POST",
@@ -474,6 +508,23 @@ export interface RodaMembership {
 
 export function listRodasForUser(userId: string, token: string) {
   return request<RodaMembership[]>(`/users/${userId}/rodas`, token);
+}
+
+// Botão "RODAS" do perfil — diretório público de rodas para descobrir.
+export interface RodaPublica {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  visibility: string;
+  bandeira: { name: string; color: string | null } | null;
+  _count: { membros: number };
+}
+
+export function listRodasPublicas(token: string, cursor?: string) {
+  const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  return request<RodaPublica[]>(`/rodas${qs}`, token);
 }
 
 // --- Mesas ---

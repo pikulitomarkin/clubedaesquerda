@@ -14,6 +14,17 @@ export class ChatsController {
     return this.chatsService.listMyChats(user.id);
   }
 
+  // Botão "CONVERSAR" do perfil — qualquer pessoa pode iniciar (ao
+  // contrário de ADICIONAR, não exige amizade). Idempotente: reabrir o
+  // mesmo chat existente em vez de duplicar.
+  @Post(":userId/iniciar")
+  async startDirectChat(
+    @Param("userId", ParseUUIDPipe) targetId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.chatsService.startDirectChat(user.id, targetId);
+  }
+
   @Get(":id/messages")
   async listMessages(
     @Param("id", ParseUUIDPipe) chatId: string,

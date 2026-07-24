@@ -1,6 +1,16 @@
 import React from 'react';
 
-export type ThreadColor = 'black' | 'white' | 'red' | 'gold' | 'green' | 'blue';
+export type ThreadColor =
+  | 'black'
+  | 'white'
+  | 'red'
+  | 'gold'
+  | 'green'
+  | 'blue'
+  | 'guava'
+  | 'orange'
+  | 'purple'
+  | 'mustard';
 
 interface EmbroideryButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,6 +28,10 @@ const threadColorClasses: Record<ThreadColor, string> = {
   gold: 'embroidery-thread-gold',
   green: 'embroidery-thread-green',
   blue: 'embroidery-thread-blue',
+  guava: 'embroidery-thread-guava',
+  orange: 'embroidery-thread-orange',
+  purple: 'embroidery-thread-purple',
+  mustard: 'embroidery-thread-mustard',
 };
 
 const sizeClasses = {

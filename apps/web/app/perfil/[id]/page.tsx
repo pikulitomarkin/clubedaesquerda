@@ -11,7 +11,7 @@ import { RodasSection } from "@/components/RodasSection";
 import { ReportModal } from "@/components/ReportModal";
 import { useAuth } from "@/lib/auth-context";
 import { useChatDock } from "@/lib/chat-dock-context";
-import { addFriend, ApiError, blockUser, getUser, swipe, type UserProfile } from "@/lib/api";
+import { addFriend, ApiError, blockUser, getUser, startChat, swipe, type UserProfile } from "@/lib/api";
 
 export default function PerfilPage() {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +63,23 @@ export default function PerfilPage() {
     }
   }
 
+  // Botão "CONVERSAR": qualquer pessoa pode iniciar, sem exigir amizade
+  // (diferente de ADICIONAR). A API barra se houver bloqueio entre as
+  // partes.
+  async function handleConversar() {
+    if (!accessToken) return;
+    setBusy("conversar");
+    setActionError(null);
+    try {
+      const chat = await startChat(id, accessToken);
+      openChat({ id: chat.id, title: profile?.profile?.displayName ?? "Chat" });
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Não foi possível iniciar a conversa");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function handleAdicionar() {
     if (!accessToken) return;
     setBusy("adicionar");
@@ -78,6 +95,9 @@ export default function PerfilPage() {
     }
   }
 
+  // O mesmo botão que mostrava "ADICIONAR" vira "BLOQUEAR" assim que os
+  // dois são amigos — não é um botão de bloqueio separado, é a
+  // transformação descrita no spec do cliente.
   async function handleBloquear() {
     if (!accessToken) return;
     if (!confirm("Bloquear este perfil? Vocês deixarão de se ver mutuamente.")) return;
@@ -110,61 +130,106 @@ export default function PerfilPage() {
   }
 
   const viewer = profile.viewer;
+  const fotos = profile.profile?.photos?.length
+    ? profile.profile.photos
+    : profile.profile?.photoUrl
+      ? [profile.profile.photoUrl]
+      : [];
+  const bandeiras = profile.profile?.bandeiras ?? [];
+  const interesses = profile.profile?.interesses ?? [];
 
   return (
     <main className="min-h-screen bg-linen-texture flex flex-col items-center gap-6 p-8">
       {/* Galeria de até 3 fotos; perfis antigos têm só photoUrl. */}
-      {(() => {
-        const fotos = profile.profile?.photos?.length
-          ? profile.profile.photos
-          : profile.profile?.photoUrl
-            ? [profile.profile.photoUrl]
-            : [];
+      {fotos.length === 0 ? (
+        <EmbroideryLogo size="sm" />
+      ) : (
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {fotos.map((url, i) => (
+            <img
+              key={url}
+              src={url}
+              alt={`${profile.profile?.displayName ?? "Perfil"} — foto ${i + 1}`}
+              className={`rounded-full object-cover shadow-embroidery-3d ${i === 0 ? "h-28 w-28" : "h-20 w-20"}`}
+            />
+          ))}
+        </div>
+      )}
 
-        if (fotos.length === 0) return <EmbroideryLogo size="sm" />;
-
-        return (
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {fotos.map((url, i) => (
-              <img
-                key={url}
-                src={url}
-                alt={`${profile.profile?.displayName ?? "Perfil"} — foto ${i + 1}`}
-                className={`rounded-full object-cover shadow-embroidery-3d ${
-                  i === 0 ? "h-28 w-28" : "h-20 w-20"
-                }`}
-              />
-            ))}
-          </div>
-        );
-      })()}
-
-      <section className="w-full max-w-md text-center p-6 bg-white/80 rounded-lg shadow-embroidery">
-        <h1 className="font-heading text-3xl mb-1">{profile.profile?.displayName ?? "Perfil"}</h1>
-        {profile.profile?.city && (
-          <p className="font-body text-xs text-embroidery-gray mb-4">
-            {profile.profile.city}
-            {profile.profile.state ? `, ${profile.profile.state}` : ""}
-          </p>
-        )}
-        {profile.profile?.bio && <p className="font-body text-sm mb-4">{profile.profile.bio}</p>}
+      <section className="w-full max-w-md flex flex-col gap-5 text-center p-6 bg-white/80 rounded-lg shadow-embroidery">
+        <div>
+          {/* TÍTULO */}
+          <h1 className="font-heading text-3xl mb-1">{profile.profile?.displayName ?? "Perfil"}</h1>
+          {profile.profile?.city && (
+            <p className="font-body text-xs text-embroidery-gray">
+              {profile.profile.city}
+              {profile.profile.state ? `, ${profile.profile.state}` : ""}
+            </p>
+          )}
+        </div>
 
         {isOwnProfile && (
-          <Link href="/perfil/editar" className="inline-block">
-            <EmbroideryButton variant="secondary" threadColor="black" size="sm">
-              Editar perfil
-            </EmbroideryButton>
-          </Link>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link href="/perfil/editar">
+              <EmbroideryButton variant="secondary" threadColor="black" size="sm">
+                Editar perfil
+              </EmbroideryButton>
+            </Link>
+            {/* "RODA DE CONVERSA" — só o próprio usuário, leva à página de
+                chat (inbox de conversas). */}
+            <Link href="/chats">
+              <EmbroideryButton variant="secondary" threadColor="blue" size="sm">
+                Roda de Conversa
+              </EmbroideryButton>
+            </Link>
+          </div>
+        )}
+
+        {profile.profile?.bio && (
+          <div className="text-left">
+            <h2 className="font-heading text-lg mb-1">Descrição</h2>
+            <p className="font-body text-sm whitespace-pre-wrap">{profile.profile.bio}</p>
+          </div>
+        )}
+
+        {bandeiras.length > 0 && (
+          <div className="text-left">
+            <h2 className="font-heading text-lg mb-2">Bandeiras</h2>
+            <div className="flex flex-wrap gap-3">
+              {bandeiras.map((b) => (
+                <div key={b.slug} className="flex flex-col items-center gap-1 w-16">
+                  {b.imageUrl && <img src={b.imageUrl} alt="" aria-hidden className="h-10 w-auto object-contain" />}
+                  <span className="font-body text-[10px] text-center leading-tight">{b.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {interesses.length > 0 && (
+          <div className="text-left">
+            <h2 className="font-heading text-lg mb-2">Interesses</h2>
+            <div className="flex flex-wrap gap-3">
+              {interesses.map((i) => (
+                <div key={i.slug} className="flex flex-col items-center gap-1 w-16">
+                  {i.imageUrl && <img src={i.imageUrl} alt="" aria-hidden className="h-10 w-auto object-contain" />}
+                  <span className="font-body text-[10px] text-center leading-tight">{i.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {!isOwnProfile && viewer && (
-          <div className="flex flex-wrap justify-center gap-3 mt-4">
+          <div className="flex flex-wrap justify-center gap-3">
+            {/* GOSTEI — rosa goiaba. */}
             {viewer.matchId ? (
               <EmbroideryButton threadColor="gold" disabled>
                 Já é match
               </EmbroideryButton>
             ) : (
               <EmbroideryButton
+                threadColor="guava"
                 onClick={handleGostei}
                 isLoading={busy === "gostei"}
                 disabled={viewer.hasLiked}
@@ -173,35 +238,48 @@ export default function PerfilPage() {
               </EmbroideryButton>
             )}
 
+            {/* CONVERSAR — azul. Qualquer pessoa pode iniciar. */}
             <EmbroideryButton
               variant="secondary"
-              threadColor="black"
-              onClick={handleAdicionar}
-              isLoading={busy === "adicionar"}
-              disabled={viewer.isFriend}
+              threadColor="blue"
+              onClick={handleConversar}
+              isLoading={busy === "conversar"}
             >
-              {viewer.isFriend ? "Amigos" : "Adicionar"}
+              Conversar
             </EmbroideryButton>
 
-            <EmbroideryButton
-              variant="secondary"
-              threadColor="red"
-              onClick={handleBloquear}
-              isLoading={busy === "bloquear"}
-            >
-              Bloquear
-            </EmbroideryButton>
+            {/* ADICIONAR (verde) vira BLOQUEAR (laranja) assim que amigos. */}
+            {viewer.isFriend ? (
+              <EmbroideryButton
+                variant="secondary"
+                threadColor="orange"
+                onClick={handleBloquear}
+                isLoading={busy === "bloquear"}
+              >
+                Bloquear
+              </EmbroideryButton>
+            ) : (
+              <EmbroideryButton
+                variant="secondary"
+                threadColor="green"
+                onClick={handleAdicionar}
+                isLoading={busy === "adicionar"}
+              >
+                Adicionar
+              </EmbroideryButton>
+            )}
 
+            {/* DENUNCIAR DE TROLL — laranja. */}
             <button
               onClick={() => setShowReport(true)}
-              className="text-xs font-body underline text-red-700"
+              className="embroidery-thread-orange text-xs font-embroidery underline"
             >
               Denunciar de troll
             </button>
           </div>
         )}
 
-        {actionError && <p className="text-xs text-red-700 mt-3">{actionError}</p>}
+        {actionError && <p className="text-xs text-red-700">{actionError}</p>}
       </section>
 
       <RodasSection profileUserId={id} />

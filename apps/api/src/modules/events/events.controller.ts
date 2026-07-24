@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CurrentUser, AuthenticatedUser } from "../common/decorators/current-user.decorator";
@@ -15,6 +15,13 @@ export class EventsController {
   @Post("eventos")
   create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateEventoDto) {
     return this.eventsService.create(user.id, dto);
+  }
+
+  // Botão "EVENTOS" — página inicial de descoberta (próximos eventos
+  // publicados, de qualquer organizador).
+  @Get("eventos")
+  listUpcoming(@Query("cursor") cursor?: string) {
+    return this.eventsService.listUpcoming(cursor);
   }
 
   @Get("eventos/:id")

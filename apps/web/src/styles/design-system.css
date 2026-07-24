@@ -156,6 +156,32 @@
   transform: none;
 }
 
+/* Sobrevoo de confete/purpurina do popup de match (ConfettiBurst). Cada
+   partícula cai do topo até abaixo da tela girando até --rotate-final,
+   com um leve balanço horizontal (translateX oscilante) para não cair em
+   linha reta. */
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) translateX(24px) rotate(var(--rotate-final, 360deg));
+    opacity: 0.85;
+  }
+}
+.confetti-piece {
+  animation-name: confettiFall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti-piece {
+    animation: none !important;
+    display: none;
+  }
+}
+
 /* Acessibilidade: quem pede menos movimento não recebe o pulo do bastidor. */
 @media (prefers-reduced-motion: reduce) {
   .animate-hop,
@@ -435,6 +461,24 @@ body {
   text-shadow:
     1px 1px 0 rgba(255, 255, 255, 0.3),
     -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Cores de linha do spec do cliente para os botões do perfil. */
+.embroidery-thread-guava {
+  color: #e94f7a; /* rosa goiaba — GOSTEI, CONVERSAR do match */
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3), -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+.embroidery-thread-orange {
+  color: #e8722a; /* laranja — BLOQUEAR, DENUNCIAR */
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3), -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+.embroidery-thread-purple {
+  color: #7b3fa0; /* roxo — RODAS */
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3), -1px -1px 0 rgba(0, 0, 0, 0.2);
+}
+.embroidery-thread-mustard {
+  color: #c99700; /* amarelo mostarda — EVENTOS */
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3), -1px -1px 0 rgba(0, 0, 0, 0.2);
 }
 
 /* Focus States */

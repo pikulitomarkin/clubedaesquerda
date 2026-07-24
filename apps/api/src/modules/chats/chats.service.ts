@@ -108,6 +108,25 @@ export class ChatsService {
     });
   }
 
+  // Botão "CONVERSAR" do perfil — qualquer pessoa pode iniciar, sem
+  // precisar ser amigo/match (essa é a diferença para o fluxo de
+  // ADICIONAR, que também usa getOrCreateDirectChat mas nasce de uma
+  // amizade). Único ponto de entrada público, por isso é aqui que o
+  // bloqueio é checado — getOrCreateDirectChat em si não checa, pois
+  // também é chamado internamente por fluxos que já garantiram isso
+  // (ex.: FriendshipsService.add só chega aqui após a própria checagem).
+  async startDirectChat(userId: string, targetId: string) {
+    if (userId === targetId) {
+      throw new ForbiddenException("Você não pode conversar consigo mesmo");
+    }
+    if (await this.blocks.isBlocked(userId, targetId)) {
+      // 403 genérico: não confirma se o bloqueio existe nem em qual
+      // direção, mesma política de silêncio do resto do bloqueio.
+      throw new ForbiddenException("Não é possível iniciar esta conversa");
+    }
+    return this.getOrCreateDirectChat(userId, targetId);
+  }
+
   // Chamado por FriendshipsService.block(): agenda o expurgo de TODO
   // chat DIRECT entre o par (pode existir mais de um — um nascido de
   // Match e outro de "ADICIONAR", já que getOrCreateDirectChat não

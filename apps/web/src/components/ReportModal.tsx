@@ -105,7 +105,7 @@ export function ReportModal({
             {error && <p className="text-sm text-red-700">{error}</p>}
 
             <div className="flex gap-3">
-              <EmbroideryButton type="submit" isLoading={submitting} disabled={!category} threadColor="red">
+              <EmbroideryButton type="submit" isLoading={submitting} disabled={!category} threadColor="orange">
                 Enviar denúncia
               </EmbroideryButton>
               <button type="button" onClick={onClose} className="text-xs font-body underline">

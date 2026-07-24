@@ -33,12 +33,40 @@ export class UsersService {
         email: isSelf, // e-mail nunca é exposto no perfil de terceiros
         status: true,
         createdAt: true,
-        profile: true,
+        profile: {
+          include: {
+            // Bandeiras e interesses exibidos no perfil (ícone + nome),
+            // ordenados: bandeiras pela prioridade definida na edição.
+            profileBandeiras: {
+              orderBy: { priority: "asc" },
+              select: {
+                bandeira: { select: { slug: true, name: true, imageUrl: true } },
+              },
+            },
+            profileInteresses: {
+              select: {
+                interesse: { select: { slug: true, name: true, imageUrl: true } },
+              },
+            },
+          },
+        },
       },
     });
     if (!user) throw new NotFoundException("Usuário não encontrado");
 
-    if (!viewerId || isSelf) return { ...user, viewer: null };
+    // Achata para arrays simples de {slug,name,imageUrl} — o formato que o
+    // frontend consome (ver CatalogItem-like em UserProfile.profile).
+    const flat = (u: typeof user) => {
+      if (!u.profile) return null;
+      const { profileBandeiras, profileInteresses, ...rest } = u.profile;
+      return {
+        ...rest,
+        bandeiras: profileBandeiras.map((b) => b.bandeira),
+        interesses: profileInteresses.map((i) => i.interesse),
+      };
+    };
+
+    if (!viewerId || isSelf) return { ...user, profile: flat(user), viewer: null };
 
     const [loId, hiId] = sortPair(viewerId, id);
     const [friendship, swipe, match] = await Promise.all([
@@ -61,6 +89,7 @@ export class UsersService {
 
     return {
       ...user,
+      profile: flat(user),
       // Estado da relação entre quem pediu (viewer) e o perfil, usado
       // pelo frontend para decidir quais botões mostrar (GOSTEI já dado,
       // ADICIONAR já é amigo, chat de match já existe).

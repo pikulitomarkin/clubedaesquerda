@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { EmbroideryButton } from "./EmbroideryButton";
 import { useAuth } from "@/lib/auth-context";
 import { listRodasForUser, type RodaMembership } from "@/lib/api";
 
@@ -21,38 +22,49 @@ export function RodasSection({ profileUserId }: { profileUserId: string }) {
       .catch(() => setRodas([]));
   }, [profileUserId, accessToken]);
 
-  if (rodas.length === 0) return null;
-
   return (
     <section className="w-full max-w-md flex flex-col gap-3">
-      <h2 className="font-heading text-2xl">Rodas Conectadas</h2>
-      <div className="grid grid-cols-2 gap-3">
-        {rodas.map((roda) => (
-          <Link
-            key={roda.id}
-            href={`/rodas/${roda.slug}`}
-            className="flex flex-col items-center gap-2 p-3 bg-white/60 rounded-lg shadow-embroidery hover:shadow-embroidery-3d hover:border-terracotta-400 border-2 border-transparent transition-all"
-          >
-            {roda.imageUrl ? (
-              <img
-                src={roda.imageUrl}
-                alt={roda.name}
-                className="w-16 h-16 rounded-full object-cover shadow-embroidery"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-linen-300 flex items-center justify-center text-2xl font-embroidery text-embroidery-dark">
-                {roda.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <p className="font-embroidery text-xs text-center text-embroidery-black line-clamp-2">
-              {roda.name}
-            </p>
-            {roda.role === "OWNER" && (
-              <span className="text-[10px] font-body text-terracotta-700">criadora</span>
-            )}
-          </Link>
-        ))}
+      <div className="flex items-center justify-between">
+        <h2 className="font-heading text-2xl">Rodas</h2>
+        {/* Botão "RODAS" — leva à página inicial de descoberta de rodas. */}
+        <Link href="/rodas">
+          <EmbroideryButton variant="secondary" threadColor="purple" size="sm">
+            Rodas
+          </EmbroideryButton>
+        </Link>
       </div>
+
+      {rodas.length === 0 ? (
+        <p className="text-xs font-body text-embroidery-gray">Ainda não faz parte de nenhuma roda.</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {rodas.map((roda) => (
+            <Link
+              key={roda.id}
+              href={`/rodas/${roda.slug}`}
+              className="flex flex-col items-center gap-2 p-3 bg-white/60 rounded-lg shadow-embroidery hover:shadow-embroidery-3d hover:border-terracotta-400 border-2 border-transparent transition-all"
+            >
+              {roda.imageUrl ? (
+                <img
+                  src={roda.imageUrl}
+                  alt={roda.name}
+                  className="w-16 h-16 rounded-full object-cover shadow-embroidery"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-linen-300 flex items-center justify-center text-2xl font-embroidery text-embroidery-dark">
+                  {roda.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <p className="font-embroidery text-xs text-center text-embroidery-black line-clamp-2">
+                {roda.name}
+              </p>
+              {roda.role === "OWNER" && (
+                <span className="text-[10px] font-body text-terracotta-700">criadora</span>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

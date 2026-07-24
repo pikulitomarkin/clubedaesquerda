@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { OptionalJwtAuthGuard } from "../auth/guards/optional-jwt-auth.guard";
 import { CurrentUser, AuthenticatedUser } from "../common/decorators/current-user.decorator";
@@ -11,6 +11,12 @@ import { CreateRodaDto } from "./dto/create-roda.dto";
 @Controller()
 export class RodasController {
   constructor(private readonly rodasService: RodasService) {}
+
+  // Botão "RODAS" — página inicial de descoberta (diretório público).
+  @Get("rodas")
+  listPublic(@Query("cursor") cursor?: string) {
+    return this.rodasService.listPublic(cursor);
+  }
 
   // Pública com auth opcional: identifica o viewer, quando houver, para
   // ocultar membros bloqueados da lista.

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { EmbroideryButton } from "./EmbroideryButton";
 import { useAuth } from "@/lib/auth-context";
 import { listEventosForUser, type Evento } from "@/lib/api";
 
@@ -26,32 +27,43 @@ export function EventosSection({ profileUserId }: { profileUserId: string }) {
       .catch(() => setEventos([]));
   }, [profileUserId, accessToken]);
 
-  if (eventos.length === 0) return null;
-
   return (
     <section className="w-full max-w-md flex flex-col gap-3">
-      <h2 className="font-heading text-2xl">Eventos</h2>
-      <ul className="flex flex-col gap-2">
-        {eventos.map((evento) => {
-          const start = new Date(evento.startsAt);
-          return (
-            <li key={evento.id}>
-              <Link
-                href={`/eventos/${evento.id}`}
-                className="block p-3 bg-white/60 rounded-md shadow-embroidery hover:shadow-embroidery-3d transition-shadow"
-              >
-                <p className="font-embroidery text-sm">
-                  {TIPO_ICON[evento.tipo] ?? "🗓️"} {evento.title}
-                  {evento.recurrenceFrequency && " 🔁"}
-                </p>
-                <p className="text-xs font-body text-embroidery-gray">
-                  {start.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
-                </p>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="flex items-center justify-between">
+        <h2 className="font-heading text-2xl">Eventos</h2>
+        {/* Botão "EVENTOS" — leva à página inicial de descoberta. */}
+        <Link href="/eventos">
+          <EmbroideryButton variant="secondary" threadColor="mustard" size="sm">
+            Eventos
+          </EmbroideryButton>
+        </Link>
+      </div>
+
+      {eventos.length === 0 ? (
+        <p className="text-xs font-body text-embroidery-gray">Nenhum evento confirmado ainda.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {eventos.map((evento) => {
+            const start = new Date(evento.startsAt);
+            return (
+              <li key={evento.id}>
+                <Link
+                  href={`/eventos/${evento.id}`}
+                  className="block p-3 bg-white/60 rounded-md shadow-embroidery hover:shadow-embroidery-3d transition-shadow"
+                >
+                  <p className="font-embroidery text-sm">
+                    {TIPO_ICON[evento.tipo] ?? "🗓️"} {evento.title}
+                    {evento.recurrenceFrequency && " 🔁"}
+                  </p>
+                  <p className="text-xs font-body text-embroidery-gray">
+                    {start.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                  </p>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }

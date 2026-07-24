@@ -88,6 +88,33 @@ export class EventsService {
     return evento;
   }
 
+  // Botão "EVENTOS" do perfil — página inicial de descoberta: próximos
+  // eventos publicados, de qualquer organizador. DRAFT fica de fora
+  // (ainda não é público) e eventos já encerrados também (mesmo corte de
+  // "fim efetivo" usado no cleanup, para não listar o que já passou).
+  async listUpcoming(cursor?: string, take = 30) {
+    const now = new Date();
+    return this.prisma.evento.findMany({
+      where: {
+        status: "PUBLISHED",
+        OR: [{ endsAt: { gte: now } }, { endsAt: null, startsAt: { gte: now } }],
+      },
+      orderBy: [{ startsAt: "asc" }, { id: "asc" }],
+      take,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      select: {
+        id: true,
+        title: true,
+        tipo: true,
+        city: true,
+        state: true,
+        startsAt: true,
+        recurrenceFrequency: true,
+        organizer: { select: { profile: { select: { displayName: true } } } },
+      },
+    });
+  }
+
   // Eventos exibidos no perfil de um usuário: onde é organizador, está
   // confirmado, ou aceitou um convite — até 1h após o término (ver
   // EVENTO_POST_END_GRACE_MS acima).

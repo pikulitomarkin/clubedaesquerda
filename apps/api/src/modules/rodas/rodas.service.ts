@@ -24,6 +24,28 @@ export class RodasService {
     private readonly realtime: RealtimeGateway,
   ) {}
 
+  // Botão "RODAS" do perfil — página inicial de descoberta de rodas.
+  // INVITE_ONLY fica de fora do diretório: existir só é visível para quem
+  // já foi convidado/é membro (mesma política de RodasService.findBySlug).
+  async listPublic(cursor?: string, take = 30) {
+    return this.prisma.roda.findMany({
+      where: { visibility: { in: ["PUBLIC", "MEMBERS_ONLY"] }, archivedAt: null },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        description: true,
+        imageUrl: true,
+        visibility: true,
+        bandeira: { select: { name: true, color: true } },
+        _count: { select: { membros: true } },
+      },
+    });
+  }
+
   async create(ownerId: string, dto: CreateRodaDto) {
     return this.prisma.$transaction(async (tx) => {
       const roda = await tx.roda.create({
