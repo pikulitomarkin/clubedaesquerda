@@ -82,7 +82,7 @@ export default function RodaPage() {
 
   function handleOpenChat() {
     if (!roda?.chat) return;
-    openChat({ id: roda.chat.id, title: roda.name, imageUrl: roda.imageUrl });
+    openChat({ id: roda.chat.id, title: roda.name, imageUrl: roda.imageUrl, isGroup: true });
   }
 
   if (error) {

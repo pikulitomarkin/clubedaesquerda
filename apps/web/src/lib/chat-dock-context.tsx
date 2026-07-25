@@ -11,6 +11,11 @@ export interface ChatMeta {
   // "Fechar roda". Ausente/undefined para DIRECT e para GROUP de Roda.
   isAdHocGroup?: boolean;
   isCreator?: boolean;
+  // Chat com mais de 2 participantes (roda de conversa avulsa OU chat de
+  // comunidade de uma Roda) — o ChatWindow usa isto para decidir se mostra
+  // o nome de quem enviou cada mensagem (em DIRECT já se sabe quem é, pela
+  // própria conversa 1:1).
+  isGroup?: boolean;
 }
 
 interface ChatDockContextValue {

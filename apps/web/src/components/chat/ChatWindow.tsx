@@ -146,20 +146,31 @@ export function ChatWindow({ meta, onClose }: { meta: ChatMeta; onClose: () => v
       )}
 
       <div className="flex-1 flex flex-col gap-2 overflow-y-auto p-2">
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`max-w-[80%] px-3 py-2 rounded-lg text-sm font-body ${
-              m.senderId === userId ? "self-end bg-terracotta-300" : "self-start bg-white"
-            }`}
-          >
-            {m.type === "GIF" && m.mediaUrl ? (
-              <img src={m.mediaUrl} alt="GIF" className="max-w-full rounded" />
-            ) : (
-              <MessageContent text={m.content ?? ""} emojis={emojis} />
-            )}
-          </div>
-        ))}
+        {messages.map((m) => {
+          // Nome de quem enviou — só faz sentido em roda/grupo (em DIRECT já
+          // se sabe quem é o outro lado, pelo cabeçalho da própria conversa).
+          const mostrarRemetente = meta.isGroup && m.senderId !== userId;
+          return (
+            <div key={m.id} className={`flex flex-col max-w-[80%] ${m.senderId === userId ? "self-end items-end" : "self-start items-start"}`}>
+              {mostrarRemetente && (
+                <span className="font-embroidery text-[10px] text-embroidery-gray px-1">
+                  {m.sender.profile?.displayName ?? "Alguém"}
+                </span>
+              )}
+              <div
+                className={`px-3 py-2 rounded-lg text-sm font-body ${
+                  m.senderId === userId ? "bg-terracotta-300" : "bg-white"
+                }`}
+              >
+                {m.type === "GIF" && m.mediaUrl ? (
+                  <img src={m.mediaUrl} alt="GIF" className="max-w-full rounded" />
+                ) : (
+                  <MessageContent text={m.content ?? ""} emojis={emojis} />
+                )}
+              </div>
+            </div>
+          );
+        })}
         <div ref={bottomRef} />
       </div>
 

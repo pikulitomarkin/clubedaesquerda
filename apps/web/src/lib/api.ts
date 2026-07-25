@@ -282,6 +282,7 @@ export interface ChatMessage {
   content: string | null;
   mediaUrl: string | null;
   createdAt: string;
+  sender: { id: string; profile: { displayName: string; photoUrl: string | null } | null };
 }
 
 export function listChatMessages(chatId: string, token: string) {

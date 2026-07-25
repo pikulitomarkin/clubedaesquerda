@@ -23,6 +23,9 @@ export class ChatsService {
   async sendMessage(senderId: string, dto: SendMessageDto) {
     const participants = await this.assertAccess(dto.chatId, senderId);
 
+    // Inclui o remetente (nome/foto) para a UI exibir "quem mandou" tanto em
+    // chats de grupo quanto em rodas — sem isso, a mensagem chegava ao vivo
+    // via WebSocket só com senderId, sem dado nenhum para exibir o nome.
     const message = await this.prisma.message.create({
       data: {
         id: ulid(),
@@ -32,6 +35,7 @@ export class ChatsService {
         content: dto.content,
         mediaUrl: dto.mediaUrl,
       },
+      include: { sender: { select: { id: true, profile: { select: { displayName: true, photoUrl: true } } } } },
     });
 
     return { message, participantIds: participants.map((p) => p.userId) };
@@ -51,6 +55,7 @@ export class ChatsService {
       orderBy: { id: "desc" },
       take,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      include: { sender: { select: { id: true, profile: { select: { displayName: true, photoUrl: true } } } } },
     });
   }
 

@@ -47,6 +47,7 @@ export default function ChatsInboxPage() {
       imageUrl: imagem ?? undefined,
       isAdHocGroup: chat.type === "GROUP",
       isCreator: chat.isCreator,
+      isGroup: chat.type === "GROUP",
     });
   }
 
