@@ -15,6 +15,7 @@ import {
   uploadFile,
   type CreateEventoInput,
 } from "@/lib/api";
+import { normalizeUrl } from "@/lib/url";
 
 const TITULOS: Record<string, string> = {
   PRESENCIAL: "Evento presencial",
@@ -178,6 +179,7 @@ export function EventoFormModal({
               type="url"
               value={form.locationUrl ?? ""}
               onChange={(e) => update("locationUrl", e.target.value)}
+              onBlur={(e) => update("locationUrl", normalizeUrl(e.target.value))}
             />
           </>
         )}
@@ -188,6 +190,7 @@ export function EventoFormModal({
             type="url"
             value={form.onlineUrl ?? ""}
             onChange={(e) => update("onlineUrl", e.target.value)}
+            onBlur={(e) => update("onlineUrl", normalizeUrl(e.target.value))}
             required={tipo === "ONLINE"}
           />
         )}
@@ -272,6 +275,7 @@ export function EventoFormModal({
             type="url"
             value={form.ticketUrl ?? ""}
             onChange={(e) => update("ticketUrl", e.target.value)}
+            onBlur={(e) => update("ticketUrl", normalizeUrl(e.target.value))}
           />
         )}
 

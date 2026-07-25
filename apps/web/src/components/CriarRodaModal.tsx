@@ -6,6 +6,7 @@ import { FormField } from "./FormField";
 import { FormTextarea } from "./FormTextarea";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError, createRoda, uploadFile } from "@/lib/api";
+import { normalizeUrl } from "@/lib/url";
 
 const MAX_MUSICAS = 3;
 
@@ -139,6 +140,7 @@ export function CriarRodaModal({ onClose, onCreated }: { onClose: () => void; on
               type="url"
               value={musicUrls[i] ?? ""}
               onChange={(e) => updateMusica(i, e.target.value)}
+              onBlur={(e) => updateMusica(i, normalizeUrl(e.target.value))}
             />
           ))}
         </div>
