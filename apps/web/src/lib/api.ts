@@ -30,8 +30,14 @@ async function request<T>(path: string, token?: string, init?: RequestInit): Pro
     throw new ApiError(body?.message ?? "Erro inesperado, tente novamente", res.status);
   }
 
-  if (res.status === 204) return undefined as T;
-  return res.json() as Promise<T>;
+  // Não confiar só em status === 204: vários endpoints "sem corpo" desta
+  // API respondem 200 com corpo vazio (handler que retorna void, sem
+  // @HttpCode explícito) — chamar .json() nesse caso lança um SyntaxError
+  // de parsing (não um ApiError), fazendo a ação parecer ter falhado no
+  // client mesmo quando teve sucesso no servidor (ex.: "Fechar roda").
+  const text = await res.text();
+  if (!text) return undefined as T;
+  return JSON.parse(text) as T;
 }
 
 // --- Auth ---

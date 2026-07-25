@@ -20,6 +20,11 @@ export default function RodaPage() {
 
   const [roda, setRoda] = useState<Roda | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Erro de ação (entrar/sair/fechar) — separado de `error` (falha ao
+  // carregar a página inteira): sem essa separação, uma ação que falhasse
+  // fazia a página inteira sumir e virar uma tela em branco só com a
+  // mensagem de erro, escondendo a roda que já tinha carregado certinho.
+  const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [showMontarMesa, setShowMontarMesa] = useState(false);
 
@@ -44,11 +49,12 @@ export default function RodaPage() {
   async function handleJoin() {
     if (!accessToken || !roda) return;
     setBusy("join");
+    setActionError(null);
     try {
       await joinRoda(roda.id, accessToken);
       await refresh();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível entrar na roda");
+      setActionError(err instanceof ApiError ? err.message : "Não foi possível entrar na roda");
     } finally {
       setBusy(null);
     }
@@ -58,11 +64,12 @@ export default function RodaPage() {
     if (!accessToken || !roda) return;
     if (!confirm("Sair desta roda?")) return;
     setBusy("leave");
+    setActionError(null);
     try {
       await leaveRoda(roda.id, accessToken);
       router.push("/rodas");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível sair da roda");
+      setActionError(err instanceof ApiError ? err.message : "Não foi possível sair da roda");
       setBusy(null);
     }
   }
@@ -71,11 +78,12 @@ export default function RodaPage() {
     if (!accessToken || !roda) return;
     if (!confirm("Fechar esta roda? Todo o histórico do chat será apagado para sempre.")) return;
     setBusy("close");
+    setActionError(null);
     try {
       await closeRoda(roda.id, accessToken);
       router.push("/rodas");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível fechar a roda");
+      setActionError(err instanceof ApiError ? err.message : "Não foi possível fechar a roda");
       setBusy(null);
     }
   }
@@ -147,7 +155,7 @@ export default function RodaPage() {
           )}
         </div>
 
-        {error && <p className="text-xs text-red-700 mt-3">{error}</p>}
+        {actionError && <p className="text-xs text-red-700 mt-3">{actionError}</p>}
       </section>
 
       <div className="w-full max-w-3xl flex flex-col md:flex-row gap-6">
