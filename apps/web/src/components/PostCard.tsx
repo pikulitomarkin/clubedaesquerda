@@ -9,7 +9,7 @@ import { ApiError, reactToPost, removeReaction, REACTION_TYPES, type Post, type 
 // "Posts nas Mesas"): o nome/foto do autor é sempre exibido com link
 // direto para o perfil, nunca omitido condicionalmente.
 export function PostCard({ post, onChanged }: { post: Post; onChanged: (updated: Post) => void }) {
-  const { accessToken, userId } = useAuth();
+  const { accessToken } = useAuth();
   const [busy, setBusy] = useState<ReactionTypeValue | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,8 +83,8 @@ export function PostCard({ post, onChanged }: { post: Post; onChanged: (updated:
               key={r.value}
               type="button"
               onClick={() => handleReact(r.value)}
-              disabled={busy === r.value || post.author.id === userId}
-              className={`text-xs font-embroidery px-2 py-1 rounded-full border transition-colors ${
+              disabled={busy === r.value}
+              className={`text-xs font-embroidery px-2 py-1 rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 active
                   ? "bg-[#9b1b6f] text-white border-[#9b1b6f]"
                   : "reaction-thread-purpura bg-linen-100 border-linen-300 hover:border-[#9b1b6f]"
