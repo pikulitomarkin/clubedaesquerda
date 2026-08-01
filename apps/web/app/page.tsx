@@ -7,6 +7,7 @@ import { EmbroideryButton } from "@/components/EmbroideryButton";
 import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { LoginCardArte } from "@/components/LoginCardArte";
 import { MinhasAtividadesSection } from "@/components/MinhasAtividadesSection";
+import { FeedDescoberta } from "@/components/FeedDescoberta";
 import { SugestaoModal } from "@/components/SugestaoModal";
 import { useAuth } from "@/lib/auth-context";
 import { getUser, type UserProfile } from "@/lib/api";
@@ -42,7 +43,22 @@ export default function HomePage() {
           </div>
         </div>
 
-        {accessToken && <MinhasAtividadesSection />}
+        {accessToken && (
+          <div className="w-full max-w-5xl flex flex-col items-center gap-8">
+            <MinhasAtividadesSection />
+
+            {/* Feed de descoberta: rodas e eventos de OUTRAS pessoas, para
+                entrar/participar — sem isso, logar não mostrava nada além
+                do que o próprio usuário já tinha criado. Prévia de 8 itens
+                por seção; "/feed" tem a lista completa. */}
+            <div className="w-full flex flex-col items-center gap-3">
+              <FeedDescoberta limit={8} />
+              <Link href="/feed" className="font-body text-xs underline text-embroidery-gray">
+                ver feed completo
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* "Se jogue na Roda!" — centralizado, na fonte de texto. */}
         {/* Texto do rodapé em letra de mão (Dancing Script), como pedido —
