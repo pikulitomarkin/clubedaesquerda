@@ -28,22 +28,18 @@ export default function HomePage() {
           (o padding do <main>) — três voltas lentas ao carregar. */}
       <EmbroideryLogo size="brand" className="animate-spin-3" />
 
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-12 pt-8">
-        {/* Manifesto à esquerda; login/cadastro + sugestão à direita.
-            items-center alinha o texto ao centro do bastidor de login. */}
-        <div className="grid w-full items-center gap-10 md:grid-cols-2 md:gap-14">
-          <p className="font-subheading text-xl font-bold leading-relaxed text-embroidery-black sm:text-2xl">
-            {MANIFESTO}
-          </p>
-
-          <div className="flex flex-col items-center gap-6">
-            {accessToken ? <JaLogado /> : <LoginCardArte />}
-
-            <EmbroideryButton onClick={() => setSugestaoAberta(true)}>Sugira pra nós</EmbroideryButton>
+      {accessToken ? (
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-8 pt-4">
+          {/* Perfil reduzido a um resumo no canto superior direito — a
+              versão anterior (card cheio, com bandeiras/interesses e todos
+              os botões) empurrava o feed para muito abaixo da dobra.
+              O feed de descoberta é o que a pessoa vem ver ao logar, então
+              sobe para logo abaixo da marca; o manifesto desce para depois
+              dele. */}
+          <div className="flex w-full justify-end">
+            <PerfilResumo onSugerir={() => setSugestaoAberta(true)} />
           </div>
-        </div>
 
-        {accessToken && (
           <div className="w-full max-w-5xl flex flex-col items-center gap-8">
             <MinhasAtividadesSection />
 
@@ -58,26 +54,50 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-        )}
 
-        {/* "Se jogue na Roda!" — centralizado, na fonte de texto. */}
-        {/* Texto do rodapé em letra de mão (Dancing Script), como pedido —
-            maior que a fonte de corpo para a cursiva ficar legível. */}
-        <p className="max-w-3xl text-center font-handwritten text-[13px] leading-relaxed text-embroidery-dark">
-          {RODA}
-        </p>
-      </div>
+          <p className="max-w-3xl text-center font-subheading text-xl font-bold leading-relaxed text-embroidery-black sm:text-2xl">
+            {MANIFESTO}
+          </p>
+
+          {/* "Se jogue na Roda!" — centralizado, na fonte de texto. */}
+          {/* Texto do rodapé em letra de mão (Dancing Script), como pedido —
+              maior que a fonte de corpo para a cursiva ficar legível. */}
+          <p className="max-w-3xl text-center font-handwritten text-[13px] leading-relaxed text-embroidery-dark">
+            {RODA}
+          </p>
+        </div>
+      ) : (
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-12 pt-8">
+          {/* Manifesto à esquerda; login/cadastro + sugestão à direita.
+              items-center alinha o texto ao centro do bastidor de login. */}
+          <div className="grid w-full items-center gap-10 md:grid-cols-2 md:gap-14">
+            <p className="font-subheading text-xl font-bold leading-relaxed text-embroidery-black sm:text-2xl">
+              {MANIFESTO}
+            </p>
+
+            <div className="flex flex-col items-center gap-6">
+              <LoginCardArte />
+
+              <EmbroideryButton onClick={() => setSugestaoAberta(true)}>Sugira pra nós</EmbroideryButton>
+            </div>
+          </div>
+
+          <p className="max-w-3xl text-center font-handwritten text-[13px] leading-relaxed text-embroidery-dark">
+            {RODA}
+          </p>
+        </div>
+      )}
 
       {sugestaoAberta && <SugestaoModal onClose={() => setSugestaoAberta(false)} />}
     </main>
   );
 }
 
-// Estado logado: a home vira o ponto de partida para as áreas do app —
-// antes do login o usuário caía numa tela de feed vazia, sem navegação.
-// Mostra nome, foto principal, bandeiras e interesses do próprio usuário
-// (mesmos dados exibidos no perfil público, ver GET /users/:id).
-function JaLogado() {
+// Resumo compacto do usuário logado, ancorado no canto superior direito —
+// substitui o antigo card cheio (foto grande + bandeiras/interesses +
+// botões grandes), que empurrava o feed para muito abaixo da dobra.
+// Mostra só o essencial (nome, foto) e os mesmos atalhos como links curtos.
+function PerfilResumo({ onSugerir }: { onSugerir: () => void }) {
   const { clearSession, accessToken, userId } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -91,77 +111,47 @@ function JaLogado() {
 
   const displayName = profile?.profile?.displayName;
   const photoUrl = profile?.profile?.photoUrl;
-  const bandeiras = profile?.profile?.bandeiras ?? [];
-  const interesses = profile?.profile?.interesses ?? [];
 
   return (
-    <div className="stitched flex w-full max-w-sm flex-col gap-3 rounded-xl bg-linen-100/90 p-8 shadow-embroidery-3d">
-      <div className="flex flex-col items-center gap-2 mb-1">
+    <div className="stitched flex w-fit flex-col items-end gap-2 rounded-xl bg-linen-100/90 p-3 shadow-embroidery-3d">
+      <div className="flex items-center gap-2">
+        <span className="font-marker text-sm text-embroidery-black whitespace-nowrap">
+          {displayName ? `Olá, ${displayName}!` : "Você está na roda"}
+        </span>
         {photoUrl ? (
-          <img src={photoUrl} alt={displayName ?? "Você"} className="h-20 w-20 rounded-full object-cover shadow-embroidery-3d" />
+          <img src={photoUrl} alt={displayName ?? "Você"} className="h-10 w-10 rounded-full object-cover shadow-embroidery-3d" />
         ) : (
-          <div className="h-20 w-20 rounded-full bg-linen-300 flex items-center justify-center text-2xl font-embroidery">
+          <div className="h-10 w-10 rounded-full bg-linen-300 flex items-center justify-center text-sm font-embroidery">
             {(displayName ?? "?").charAt(0).toUpperCase()}
           </div>
         )}
-        <h2 className="text-center font-marker text-2xl text-embroidery-black">
-          {displayName ? `Olá, ${displayName}!` : "Você está na roda"}
-        </h2>
       </div>
 
-      {bandeiras.length > 0 && (
-        <div className="flex flex-col items-center gap-1">
-          <span className="font-body text-[10px] uppercase tracking-wide text-embroidery-gray">Bandeiras</span>
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
-            {bandeiras.map((b) => (
-              <div key={b.slug} className="flex flex-col items-center gap-1 w-16">
-                {b.imageUrl && <img src={b.imageUrl} alt="" aria-hidden className="h-8 w-auto object-contain" />}
-                <span className="font-body text-[9px] text-center leading-tight break-words">{b.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="flex flex-wrap justify-end gap-x-3 gap-y-1">
+        <Link href="/rodas" className="font-body text-[11px] underline text-embroidery-gray">
+          Criar roda
+        </Link>
+        <Link href="/eventos" className="font-body text-[11px] underline text-embroidery-gray">
+          Criar evento
+        </Link>
+        <Link href="/perfil/editar" className="font-body text-[11px] underline text-embroidery-gray">
+          Editar perfil
+        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            clearSession();
+            router.refresh();
+          }}
+          className="font-body text-[11px] underline text-embroidery-gray"
+        >
+          Sair
+        </button>
+      </div>
 
-      {interesses.length > 0 && (
-        <div className="flex flex-col items-center gap-1">
-          <span className="font-body text-[10px] uppercase tracking-wide text-embroidery-gray">Interesses</span>
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-2">
-            {interesses.map((i) => (
-              <div key={i.slug} className="flex flex-col items-center gap-1 w-16">
-                {i.imageUrl && <img src={i.imageUrl} alt="" aria-hidden className="h-8 w-auto object-contain" />}
-                <span className="font-body text-[9px] text-center leading-tight break-words">{i.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <Link href="/rodas">
-        <EmbroideryButton size="sm" className="w-full">
-          Criar uma roda
-        </EmbroideryButton>
-      </Link>
-      <Link href="/eventos">
-        <EmbroideryButton size="sm" className="w-full">
-          Criar um evento
-        </EmbroideryButton>
-      </Link>
-      <Link href="/perfil/editar">
-        <EmbroideryButton size="sm" className="w-full">
-          Editar meu perfil
-        </EmbroideryButton>
-      </Link>
-      <button
-        type="button"
-        onClick={() => {
-          clearSession();
-          router.refresh();
-        }}
-        className="mt-2 text-center font-body text-xs text-embroidery-gray underline"
-      >
-        Sair
-      </button>
+      <EmbroideryButton size="sm" onClick={onSugerir}>
+        Sugira pra nós
+      </EmbroideryButton>
     </div>
   );
 }
