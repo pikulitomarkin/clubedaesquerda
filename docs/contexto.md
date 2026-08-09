@@ -1040,4 +1040,17 @@ de um protótipo de UI gerado à parte (`BannerSelector`/
 (`GET /bandeiras`, `GET /interesses`) em vez de uma lista fixa de 21/25
 itens embutida no componente.
 
+## 13. Caixa de sugestões envia e-mail para a equipe
+
+`SugestoesService.create` (botão "SUGIRA PRA NÓS" da home) sempre
+persistiu a sugestão para a fila de admin (`GET /sugestoes`,
+ADMIN/MODERATOR), mas ninguém era avisado — a leitura dependia de
+alguém entrar no painel. Agora, além de persistir, dispara
+`EmailService.sendSugestaoEmail` para uma caixa fixa da equipe
+(`clubedaesquerdaredesocial@gmail.com`, constante em `email.service.ts`,
+não variável de ambiente — é regra de produto, não configuração por
+ambiente). Mesmo padrão dos outros e-mails transacionais: via Resend,
+falha de envio só loga (`EmailService.send` engole erro), nunca derruba
+a criação da sugestão em si.
+
 [OWASP Password Storage Cheat Sheet]: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html

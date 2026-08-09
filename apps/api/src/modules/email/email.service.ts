@@ -11,6 +11,10 @@ import { ConfigService } from "@nestjs/config";
 // dedicado.
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
+// Caixa de entrada fixa da equipe para a caixa de sugestões da home — não é
+// configuração por ambiente, é regra de produto (toda sugestão vai pra cá).
+const SUGESTAO_DESTINATARIO = "clubedaesquerdaredesocial@gmail.com";
+
 // displayName é controlado pelo usuário; escapar antes de interpolar no HTML
 // do e-mail evita injeção de marcação no cliente de e-mail do destinatário.
 function escapeHtml(value: string): string {
@@ -83,6 +87,26 @@ export class EmailService {
         <p>Recebemos um pedido para redefinir a senha da sua conta no Clube da Esquerda.</p>
         <p><a href="${resetUrl}">${resetUrl}</a></p>
         <p>Este link expira em 1 hora e só pode ser usado uma vez. Se não foi você que pediu, ignore este e-mail — sua senha continua a mesma.</p>
+      `,
+    });
+  }
+
+  // Botão "SUGIRA PRA NÓS" da home (SugestoesService.create) — a sugestão já
+  // fica persistida para a fila de admin, e além disso vai por e-mail para a
+  // caixa da equipe poder responder sem precisar entrar no painel.
+  async sendSugestaoEmail(fromEmail: string, fromName: string, sugiro: string, porque?: string) {
+    const nome = escapeHtml(fromName);
+    const sugiroHtml = escapeHtml(sugiro).replace(/\n/g, "<br>");
+    const porqueHtml = porque ? escapeHtml(porque).replace(/\n/g, "<br>") : null;
+
+    await this.send({
+      to: SUGESTAO_DESTINATARIO,
+      subject: `Nova sugestão de ${fromName}`,
+      text: `Sugestão de ${fromName} (${fromEmail}):\n\n${sugiro}${porque ? `\n\nPor quê: ${porque}` : ""}`,
+      html: `
+        <p>Sugestão de <strong>${nome}</strong> (${escapeHtml(fromEmail)}):</p>
+        <p>${sugiroHtml}</p>
+        ${porqueHtml ? `<p><strong>Por quê:</strong> ${porqueHtml}</p>` : ""}
       `,
     });
   }
