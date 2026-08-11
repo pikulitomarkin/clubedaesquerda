@@ -1,8 +1,13 @@
-import { IsUUID } from "class-validator";
+import { IsBoolean, IsUUID } from "class-validator";
 
 export class RequestFriendshipDto {
   @IsUUID()
   addresseeId!: string;
+}
+
+export class RespondFriendshipDto {
+  @IsBoolean()
+  accept!: boolean;
 }
 
 export class BlockUserDto {

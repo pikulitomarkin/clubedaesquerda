@@ -149,6 +149,15 @@ function PerfilResumo({ onSugerir }: { onSugerir: () => void }) {
         </button>
       </div>
 
+      {/* Botão de chat na tela inicial — leva à inbox de conversas
+          (mesma página do "Roda de Conversa" no perfil), sem precisar
+          passar pelo perfil pra chegar lá. */}
+      <Link href="/chats" className="w-full">
+        <EmbroideryButton variant="secondary" threadColor="blue" size="sm" className="w-full">
+          Chat
+        </EmbroideryButton>
+      </Link>
+
       <EmbroideryButton size="sm" onClick={onSugerir}>
         Sugira pra nós
       </EmbroideryButton>

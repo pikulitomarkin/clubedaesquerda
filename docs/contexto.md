@@ -499,6 +499,10 @@ cliente precise manter múltiplas conexões WS abertas.
 
 ## 6. Amizade, bloqueio e chat
 
+> ⚠️ **Revertido em §14**: "ADICIONAR" hoje abre um pedido que precisa ser
+> aceito — a subseção abaixo descreve o design original (amizade mútua
+> imediata), mantida como registro histórico do motivo da escolha inicial.
+
 **Botão "ADICIONAR"** não abre um fluxo de pedido/aceite — cria amizade
 mútua imediatamente (`Friendship.status = ACCEPTED` já na criação) e
 garante acesso a um chat direto entre os dois usuários
@@ -1052,5 +1056,55 @@ não variável de ambiente — é regra de produto, não configuração por
 ambiente). Mesmo padrão dos outros e-mails transacionais: via Resend,
 falha de envio só loga (`EmailService.send` engole erro), nunca derruba
 a criação da sugestão em si.
+
+## 14. Amizade vira pedido/aceite (supersede §6) + lista de amigos + botão de chat na home
+
+**DECISÃO revertida**: §6 documentava "ADICIONAR cria amizade mútua
+imediata, sem etapa de pedido/aceite" como escolha deliberada de produto.
+O pedido agora é: quem recebe um "ADICIONAR" precisa aceitar antes de
+virarem amigos. `FriendshipsService.add` passa a criar
+`Friendship.status = PENDING` (o schema sempre teve
+`PENDING`/`DECLINED`/`CANCELLED` no enum, só não eram usados — nenhuma
+migration foi necessária).
+
+- **Reciprocidade automática**: se B já tinha pedido pra A, o "ADICIONAR"
+  de A no perfil de B aceita na hora (mesma lógica de swipes recíprocos
+  do Match, §3.2) — não fica esperando os dois pedirem.
+- **Reenvio após recusa**: um pedido `DECLINED`/`CANCELLED` pode ser
+  pedido de novo; a linha é reaproveitada via `upsert` sobre
+  `canonicalKey` (mesmo padrão de reenvio de Convite, §3.5) em vez de
+  `create` + captura de `P2002` (que só fazia sentido quando toda
+  amizade nascia `ACCEPTED` e um conflito só podia significar "já são
+  amigos").
+- **Chat direto só é criado/liberado na aceitação**, não no pedido —
+  `addFriend` sozinho não dá acesso ao chat; `POST /friendships/:id/resposta`
+  com `accept: true` que chama `getOrCreateDirectChat`.
+- **Recusar é silencioso** — mesma política do bloqueio (§6): não notifica
+  quem pediu, só remove da lista de pendentes de quem recusou.
+- **Endpoints novos**: `GET /friendships/pendentes` (pedidos recebidos,
+  alimenta a seção "Solicitações de amizade" no próprio perfil) e
+  `POST /friendships/:id/resposta` (`{accept: boolean}`), mesmo desenho
+  de `GET /convites/pendentes`/`POST /convites/:id/resposta`. Sem popup
+  em tempo real por enquanto (diferente do Convite) — o pedido dorme na
+  seção do perfil até a pessoa entrar lá; a API já emite
+  `friendship:requested` via `RealtimeGateway` para quem quiser consumir
+  depois, mas nenhum client escuta esse evento ainda.
+- **`viewer` de `GET /users/:id`** ganhou `friendRequest`
+  (`"SENT" | "RECEIVED" | null`) e `friendshipId` — o botão no perfil de
+  terceiros mostra "Adicionar" (nada pendente), "Solicitação enviada"
+  (`SENT`, desabilitado) ou "Aceitar solicitação" (`RECEIVED`, chama
+  `respond` direto dali) sem precisar ir na lista de pendentes.
+
+**Lista de amigos**: `FriendshipsService.listFriends` (`GET
+/users/:userId/amigos`) devolve os amigos `ACCEPTED` de qualquer perfil,
+filtrando bloqueios nos dois sentidos via `BlocksService.getHiddenUserIds`
+— mesma ocultação mútua total do resto do app (§6.1). Exibida em
+`FriendsSection`, mesmo padrão visual de `RodasSection`/`EventosSection`,
+para qualquer perfil (não só o próprio).
+
+**Botão de chat na home**: a home (`/`) só linkava para a inbox de chat
+(`/chats`) indiretamente, via "Roda de Conversa" dentro do próprio
+perfil. Adicionado um atalho direto no resumo de perfil da home
+(`PerfilResumo`), sem precisar passar pelo perfil.
 
 [OWASP Password Storage Cheat Sheet]: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html

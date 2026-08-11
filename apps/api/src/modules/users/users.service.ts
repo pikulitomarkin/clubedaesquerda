@@ -92,9 +92,17 @@ export class UsersService {
       profile: flat(user),
       // Estado da relação entre quem pediu (viewer) e o perfil, usado
       // pelo frontend para decidir quais botões mostrar (GOSTEI já dado,
-      // ADICIONAR já é amigo, chat de match já existe).
+      // ADICIONAR já é amigo, chat de match já existe, pedido de amizade
+      // pendente enviado por mim ou recebido do dono do perfil).
       viewer: {
         isFriend: friendship?.status === "ACCEPTED",
+        friendRequest:
+          friendship?.status === "PENDING"
+            ? friendship.requesterId === viewerId
+              ? ("SENT" as const)
+              : ("RECEIVED" as const)
+            : null,
+        friendshipId: friendship?.status === "PENDING" ? friendship.id : null,
         hasLiked: swipe?.liked ?? false,
         matchId: hasActiveMatch ? match!.id : null,
       },

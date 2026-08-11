@@ -93,6 +93,10 @@ export function resetPassword(input: { token: string; password: string; confirmP
 
 export interface ViewerRelation {
   isFriend: boolean;
+  // "SENT" = eu pedi e ainda não responderam; "RECEIVED" = o dono do
+  // perfil me pediu e está esperando minha resposta.
+  friendRequest: "SENT" | "RECEIVED" | null;
+  friendshipId: string | null;
   hasLiked: boolean;
   matchId: string | null;
 }
@@ -192,11 +196,47 @@ export function swipe(targetId: string, liked: boolean, token: string) {
 
 // --- Amizades / bloqueio (botões ADICIONAR / BLOQUEAR) ---
 
+export interface FriendshipResult {
+  friendshipId?: string;
+  chatId: string | null;
+  status: "PENDING" | "ACCEPTED" | "DECLINED";
+}
+
+// Abre um pedido de amizade — ou aceita na hora, se o alvo já tinha
+// pedido pra mim (ver FriendshipsService.add).
 export function addFriend(addresseeId: string, token: string) {
-  return request<{ friendshipId?: string; chatId: string }>("/friendships", token, {
+  return request<FriendshipResult>("/friendships", token, {
     method: "POST",
     body: JSON.stringify({ addresseeId }),
   });
+}
+
+export interface FriendRequest {
+  id: string;
+  createdAt: string;
+  requester: { id: string; profile: { displayName: string; photoUrl: string | null } | null };
+}
+
+// Seção "Solicitações de amizade" no próprio perfil.
+export function listPendingFriendRequests(token: string) {
+  return request<FriendRequest[]>("/friendships/pendentes", token);
+}
+
+export function respondFriendRequest(friendshipId: string, accept: boolean, token: string) {
+  return request<FriendshipResult>(`/friendships/${friendshipId}/resposta`, token, {
+    method: "POST",
+    body: JSON.stringify({ accept }),
+  });
+}
+
+export interface Friend {
+  id: string;
+  profile: { displayName: string; photoUrl: string | null } | null;
+}
+
+// Lista de amigos exibida no perfil (própria ou de terceiros).
+export function listFriends(userId: string, token: string) {
+  return request<Friend[]>(`/users/${userId}/amigos`, token);
 }
 
 export function blockUser(userId: string, token: string) {

@@ -9,10 +9,21 @@ import { EmbroideryLogo } from "@/components/EmbroideryLogo";
 import { HomenagensSection } from "@/components/HomenagensSection";
 import { EventosSection } from "@/components/EventosSection";
 import { RodasSection } from "@/components/RodasSection";
+import { FriendsSection } from "@/components/FriendsSection";
+import { FriendRequestsSection } from "@/components/FriendRequestsSection";
 import { ReportModal } from "@/components/ReportModal";
 import { useAuth } from "@/lib/auth-context";
 import { useChatDock } from "@/lib/chat-dock-context";
-import { addFriend, ApiError, blockUser, getUser, startChat, swipe, type UserProfile } from "@/lib/api";
+import {
+  addFriend,
+  ApiError,
+  blockUser,
+  getUser,
+  respondFriendRequest,
+  startChat,
+  swipe,
+  type UserProfile,
+} from "@/lib/api";
 
 export default function PerfilPage() {
   const { id } = useParams<{ id: string }>();
@@ -81,6 +92,10 @@ export default function PerfilPage() {
     }
   }
 
+  // "Adicionar" abre um pedido de amizade (não cria amizade na hora) — a
+  // pessoa só vira amiga quando aceitar (FriendRequestsSection no perfil
+  // dela). Se ela já tinha pedido pra mim, a API aceita na hora e já
+  // devolve o chat.
   async function handleAdicionar() {
     if (!accessToken) return;
     setBusy("adicionar");
@@ -88,9 +103,30 @@ export default function PerfilPage() {
     try {
       const result = await addFriend(id, accessToken);
       await refresh();
-      openChat({ id: result.chatId, title: profile?.profile?.displayName ?? "Chat" });
+      if (result.status === "ACCEPTED" && result.chatId) {
+        openChat({ id: result.chatId, title: profile?.profile?.displayName ?? "Chat" });
+      }
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : "Não foi possível adicionar");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  // Botão "Aceitar solicitação" — aparece quando ESTE perfil já me
+  // mandou um pedido de amizade (viewer.friendRequest === "RECEIVED").
+  async function handleAceitarSolicitacao() {
+    if (!accessToken || !viewer?.friendshipId) return;
+    setBusy("aceitar");
+    setActionError(null);
+    try {
+      const result = await respondFriendRequest(viewer.friendshipId, true, accessToken);
+      await refresh();
+      if (result.chatId) {
+        openChat({ id: result.chatId, title: profile?.profile?.displayName ?? "Chat" });
+      }
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Não foi possível aceitar");
     } finally {
       setBusy(null);
     }
@@ -252,7 +288,10 @@ export default function PerfilPage() {
               Conversar
             </EmbroideryButton>
 
-            {/* ADICIONAR (verde) vira BLOQUEAR (laranja) assim que amigos. */}
+            {/* ADICIONAR (verde) vira BLOQUEAR (laranja) assim que amigos.
+                Enquanto pendente: "Aceitar solicitação" se foi ESTE perfil
+                quem me pediu, ou "Solicitação enviada" (desabilitado) se
+                fui eu quem pediu. */}
             {viewer.isFriend ? (
               <EmbroideryButton
                 variant="secondary"
@@ -261,6 +300,19 @@ export default function PerfilPage() {
                 isLoading={busy === "bloquear"}
               >
                 Bloquear
+              </EmbroideryButton>
+            ) : viewer.friendRequest === "RECEIVED" ? (
+              <EmbroideryButton
+                variant="secondary"
+                threadColor="green"
+                onClick={handleAceitarSolicitacao}
+                isLoading={busy === "aceitar"}
+              >
+                Aceitar solicitação
+              </EmbroideryButton>
+            ) : viewer.friendRequest === "SENT" ? (
+              <EmbroideryButton variant="secondary" threadColor="green" disabled>
+                Solicitação enviada
               </EmbroideryButton>
             ) : (
               <EmbroideryButton
@@ -285,6 +337,10 @@ export default function PerfilPage() {
 
         {actionError && <p className="text-xs text-red-700">{actionError}</p>}
       </section>
+
+      {isOwnProfile && <FriendRequestsSection onChanged={refresh} />}
+
+      <FriendsSection profileUserId={id} />
 
       <RodasSection profileUserId={id} />
 
