@@ -137,6 +137,13 @@ function PerfilResumo({ onSugerir }: { onSugerir: () => void }) {
         <Link href="/perfil/editar" className="font-body text-[11px] underline text-embroidery-gray">
           Editar perfil
         </Link>
+        {/* Lista de amigos vive no próprio perfil (FriendsSection) — este
+            é o único ponto de acesso a ela a partir da home. */}
+        {userId && (
+          <Link href={`/perfil/${userId}`} className="font-body text-[11px] underline text-embroidery-gray">
+            Amigos
+          </Link>
+        )}
         <button
           type="button"
           onClick={() => {
@@ -151,9 +158,18 @@ function PerfilResumo({ onSugerir }: { onSugerir: () => void }) {
 
       {/* Botão de chat na tela inicial — leva à inbox de conversas
           (mesma página do "Roda de Conversa" no perfil), sem precisar
-          passar pelo perfil pra chegar lá. */}
+          passar pelo perfil pra chegar lá. 10px mais baixo que o padrão:
+          `.embroidery-button` fixa padding: 0.75rem (12px) por cima das
+          classes de `size`, então só um override inline garante o corte
+          exato (-5px em cada lado = -10px de altura total). */}
       <Link href="/chats" className="w-full">
-        <EmbroideryButton variant="secondary" threadColor="blue" size="sm" className="w-full">
+        <EmbroideryButton
+          variant="secondary"
+          threadColor="blue"
+          size="sm"
+          className="w-full"
+          style={{ paddingTop: "calc(0.75rem - 5px)", paddingBottom: "calc(0.75rem - 5px)" }}
+        >
           Chat
         </EmbroideryButton>
       </Link>
